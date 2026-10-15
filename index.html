@@ -1,0 +1,1699 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="빗소리·범종·싱잉볼 듣기명상과 녹음된 목소리로 안내하는 마음챙김 12가지">
+<meta name="theme-color" content="#eef0ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161b18" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="무우수">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* 배포용 기본값 (artifact 뷰어가 넣어 주던 것) */
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px;font-family:system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>무우수</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: 휴대폰 앱 구조. 아래 탭(홈·기록·설정) + 들어가는 화면(소리 고르기·재생)은 위 왼쪽 되돌아가기. 재생 중엔 아래 작은 재생바 */
+:root{
+  --bg:#eef0ea; --surface:#f8f9f5; --ink:#2a332d; --muted:#566159; --line:#d6dbd1;
+  --moss:#4f6b57; --moss-soft:#dfe7dc; --lotus:#c9798b; --brass:#b48a3c; --stone:#a9ae9f; --seal:#b2483a;
+  --serif:"Gowun Batang","Noto Serif KR",Georgia,serif;
+  --sans:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --nav-h:64px; --mini-h:64px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161b18;--surface:#1f2621;--ink:#e3e8e1;--muted:#aab5ac;--line:#323b35;
+  --moss:#8fb39a;--moss-soft:#2a3a30;--lotus:#e39aab;--brass:#d6ad5f;--stone:#6f776c;--seal:#e0806f;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161b18;--surface:#1f2621;--ink:#e3e8e1;--muted:#aab5ac;--line:#323b35;
+  --moss:#8fb39a;--moss-soft:#2a3a30;--lotus:#e39aab;--brass:#d6ad5f;--stone:#6f776c;--seal:#e0806f;color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px))}
+body.has-mini{padding-bottom:calc(var(--nav-h) + var(--mini-h) + 32px + env(safe-area-inset-bottom,0px))}
+body.no-nav{padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+body.no-nav.has-mini{padding-bottom:calc(var(--mini-h) + 32px + env(safe-area-inset-bottom,0px))}
+.app{max-width:560px;margin:0 auto}
+.view{display:flex;flex-direction:column;gap:24px;padding-top:20px}
+h1,h2,h3{font-family:var(--serif);margin:0;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lotus);outline-offset:2px;border-radius:8px}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* 위쪽 막대 (들어간 화면) */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin:0 -4px;padding-block:8px}
+.topbar h2{font-size:18px;text-align:center}
+.iconbtn{width:44px;height:44px;border:0;background:transparent;border-radius:999px;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.iconbtn:hover{background:var(--moss-soft)}
+.iconbtn svg{width:24px;height:24px}
+
+/* 홈 */
+.hello{display:flex;flex-direction:column;gap:2px;padding-top:12px}
+.hello h1{font-size:clamp(28px,7vw,34px)}
+.gatha{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.gatha p{font-family:var(--serif);font-size:19px;line-height:1.55}
+.quick{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;cursor:pointer;
+  background:var(--moss);color:var(--surface);border-radius:16px;padding:14px 18px}
+.quick .play{width:40px;height:40px;border-radius:999px;background:var(--surface);color:var(--moss);display:grid;place-items:center;flex:none}
+.quick .play svg{width:18px;height:18px}
+.quick small{display:block;opacity:.8;font-size:12.5px}
+.quick strong{font-family:var(--serif);font-size:17px;font-weight:700}
+.section{display:flex;flex-direction:column;gap:10px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline}
+.section-head h3{font-size:18px}
+.linkbtn{border:0;background:none;color:var(--moss);cursor:pointer;font-size:14px;padding:4px}
+.rows{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.row{display:grid;grid-template-columns:76px 1fr 24px;gap:14px;align-items:center;padding:12px 14px;border:0;background:none;text-align:left;cursor:pointer;width:100%}
+.row+.row{border-top:1px solid var(--line)}
+.row:hover{background:var(--moss-soft)}
+.thumb{width:76px;aspect-ratio:4/3;border-radius:10px;background:var(--bg);display:grid;place-items:center;overflow:hidden}
+.thumb svg{width:86%;height:auto}
+.row h4{margin:0;font-family:var(--serif);font-size:17px}
+.row p{font-size:13px;color:var(--muted)}
+.row .chev{width:20px;height:20px;color:var(--muted)}
+.today{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 18px;width:100%;cursor:pointer;text-align:left}
+.today b{font-family:var(--serif);font-size:20px}
+
+/* 소리 화면 */
+.hero-art{aspect-ratio:4/3;max-width:100%;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center}
+.hero-art svg{width:70%;height:auto}
+.desc{display:flex;flex-direction:column;gap:6px}
+.desc h1{font-size:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:15px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;cursor:pointer;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--moss);border-color:var(--moss);color:var(--surface)}
+.custom{display:flex;align-items:center;gap:8px}
+.custom input{width:110px;font:inherit;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums}
+.note{font-size:13.5px;color:var(--muted)}
+.btn{font-size:16px;border:0;border-radius:14px;padding:14px 18px;cursor:pointer;background:var(--ink);color:var(--surface);width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{width:auto;padding:10px 16px;font-size:14.5px}
+
+/* 재생 */
+.player{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.ring{position:relative;width:min(300px,76vw);aspect-ratio:1;max-width:100%}
+.ring svg.track{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ring .center>div:first-child{width:46%}
+.ring .center svg{width:100%;height:auto}
+.time{font-family:var(--serif);font-size:clamp(34px,9vw,46px);font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1.2}
+.hint{color:var(--muted);font-size:14px;max-width:34ch}
+.controls{display:flex;gap:10px;width:100%;max-width:340px}
+.controls .btn{flex:1}
+.vol{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+input[type=range]{accent-color:var(--moss);width:180px;max-width:50vw}
+.breath{animation:breath 10s ease-in-out infinite;transform-origin:center}
+@keyframes breath{0%,100%{transform:scale(.94);opacity:.85}50%{transform:scale(1.04);opacity:1}}
+.still .breath{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.breath{animation:none}}
+
+/* 기록 */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.tile b{font-family:var(--serif);font-size:24px;font-variant-numeric:tabular-nums}
+.tile b small{font-size:13px;font-family:var(--sans);color:var(--muted);margin-left:2px}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 8px}
+.chart svg{width:100%;height:auto;display:block}
+.log{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.log li{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;font-variant-numeric:tabular-nums}
+.log li+li{border-top:1px solid var(--line)}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* 설정 */
+.set{background:var(--surface);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column}
+.set>div{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.set>div+div{border-top:1px solid var(--line)}
+.set .inline{flex-direction:row;justify-content:space-between;align-items:center}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);transition:transform .2s}
+.switch input:checked+span{background:var(--moss)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.switch input:focus-visible+span{outline:2px solid var(--lotus);outline-offset:2px}
+
+/* 작은 재생바 + 아래 탭 */
+.mini{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));z-index:9;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:0 8px}
+body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.mini-in{max-width:540px;margin:0 auto;height:var(--mini-h);background:var(--ink);color:var(--surface);border-radius:16px;
+  display:grid;grid-template-columns:1fr 44px 44px;align-items:center;gap:4px;padding:0 8px 0 0;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.mini-open{display:flex;align-items:center;gap:12px;border:0;background:none;color:inherit;text-align:left;cursor:pointer;height:100%;padding:0 0 0 10px;min-width:0}
+.mini-open .thumb{width:58px;background:var(--surface)}
+.mini-open b{font-family:var(--serif);font-size:15px;display:block}
+.mini-open span{font-size:13px;opacity:.8;font-variant-numeric:tabular-nums}
+.mini .iconbtn{color:var(--surface)}
+.mini .iconbtn:hover{background:rgba(255,255,255,.12)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar-in{max-width:560px;margin:0 auto;height:var(--nav-h);display:grid;grid-template-columns:repeat(3,1fr)}
+.tab{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);font-size:12px}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--moss)}
+.tab[aria-current="page"] span{font-weight:700}
+.headrow{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;max-width:300px}
+.seg button{border:0;background:none;border-radius:9px;padding:7px 0;cursor:pointer;font-size:14px;color:var(--muted)}
+.seg button[aria-selected="true"]{background:var(--moss);color:var(--surface)}
+.brandrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:14px}
+.brandrow .brand{padding-top:0}
+.seal{background:transparent;color:var(--seal);border:2px double var(--seal);border-radius:5px;
+  padding:2px 7px;font-family:var(--serif);font-weight:700;font-size:12.5px;letter-spacing:.08em;cursor:pointer}
+.seal:hover{background:var(--seal);color:var(--surface)}
+.guide{background:var(--surface);border:2px solid var(--moss);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;font-size:16px;line-height:1.6}
+.guide-title{font-family:var(--serif);font-size:20px}
+.guide ol{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.guide li{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center}
+.guide li .n{width:36px;height:36px;border-radius:50%;background:var(--moss);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:17px}
+.guide .ico{display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--ink);border-radius:8px;vertical-align:middle;margin:0 2px}
+.guide .ico svg{width:18px;height:18px}
+.guide-actions{display:flex;gap:10px}
+.guide-actions .btn{flex:1;font-size:17px;padding:15px}
+.guide .linkbtn{align-self:center;font-size:14px;color:var(--muted)}
+.guide-steps{color:var(--muted);font-size:15px}
+.seal-note{color:var(--seal)}
+.seal-lg{margin:0;font-size:15px;padding:4px 8px;cursor:default}
+.seal-lg:hover{background:transparent;color:var(--seal)}
+.modal{position:fixed;inset:0;z-index:30;background:rgba(18,22,19,.5);display:flex;align-items:flex-end;justify-content:center;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (min-width:600px){.modal{align-items:center}}
+.sheet{background:var(--surface);color:var(--ink);border-radius:20px;max-width:520px;width:100%;padding:20px 22px 24px;display:flex;flex-direction:column;gap:12px;max-height:82vh;overflow:auto;line-height:1.7}
+.sheet-head{display:grid;grid-template-columns:auto 1fr 44px;gap:12px;align-items:center}
+.sheet-head h2{font-size:22px}
+.sheet .trees{font-size:14px}
+.brand{display:flex;align-items:center;gap:8px;padding-top:14px}
+.brand svg{width:28px;height:28px}
+.brand b{font-family:var(--serif);font-size:19px;letter-spacing:.04em}
+.brand span{font-family:var(--serif);font-size:13px;color:var(--muted);letter-spacing:.1em}
+#voiceOpts .btn{align-self:flex-start}
+
+/* 마음챙김 */
+.menu{display:flex;flex-direction:column;gap:12px}
+.mm{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.mm summary{list-style:none;display:grid;grid-template-columns:52px 1fr 24px;gap:14px;align-items:center;padding:14px 16px;cursor:pointer}
+.mm summary::-webkit-details-marker{display:none}
+.mm summary:hover{background:var(--moss-soft)}
+.mi{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:var(--moss-soft)}
+.mi svg{width:30px;height:30px}
+.mi-listen{color:var(--brass)} .mi-mind{color:var(--lotus)} .mi-sutra{color:var(--moss)}
+.mt{display:flex;flex-direction:column;min-width:0}
+.mt b{font-family:var(--serif);font-size:19px}
+.mt small{font-size:13px;color:var(--muted)}
+.mchev{width:20px;height:20px;color:var(--muted);transition:transform .2s}
+.mm[open]>summary .mchev{transform:rotate(90deg)}
+.mm[open]>summary{border-bottom:1px solid var(--line)}
+.mm-body{padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.mm-body .rows{border-radius:14px}
+.soon{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.srow{opacity:.85}
+.si{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--moss-soft);flex:none}
+.si svg{width:19px;height:19px}
+.si-rain,.si-moss{color:var(--moss)} .si-brass{color:var(--brass)} .si-lotus{color:var(--lotus)} .si-seal{color:var(--seal)}
+.row.ic{grid-template-columns:34px 1fr 24px}
+.sub{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.sub summary{list-style:none;display:grid;grid-template-columns:34px 1fr auto 20px;gap:12px;align-items:center;padding:10px 12px;cursor:pointer}
+.sub summary::-webkit-details-marker{display:none}
+.sub summary:hover{background:var(--moss-soft)}
+.sub summary b{font-family:var(--serif);font-size:16.5px}
+.sub summary small{font-size:12.5px;color:var(--muted)}
+.sub[open] summary{border-bottom:1px solid var(--line)}
+.sub[open]>summary .mchev{transform:rotate(90deg)}
+.sub .rows{border:0;border-radius:0;background:var(--surface)}
+.sub .prow{padding-left:22px}
+.glabel{font-size:12.5px;color:var(--muted);letter-spacing:.06em;margin:6px 2px -2px}
+.prow{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:12px 14px;border:0;background:none;text-align:left;cursor:pointer;width:100%}
+.prow+.prow{border-top:1px solid var(--line)}
+.prow:hover{background:var(--moss-soft)}
+.prow h4{margin:0;font-family:var(--serif);font-size:16.5px}
+.prow p{font-size:13px;color:var(--muted)}
+.prow .chev{width:20px;height:20px;color:var(--muted)}
+.pebble{width:42px;height:36px;border-radius:52% 48% 46% 54% / 58% 56% 44% 42%;background:var(--moss-soft);color:var(--moss);
+  display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.sos{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:1px solid var(--lotus);background:transparent;
+  border-radius:14px;padding:12px 16px;cursor:pointer;text-align:left}
+.sos b{font-family:var(--serif);font-size:16px}
+.sos>span:last-child{white-space:nowrap}
+.sos span.muted{font-size:13px}
+.goal{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:6px;width:min(180px,40vw)}
+.goal i{display:block;height:100%;background:var(--moss);border-radius:999px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted)}
+.when{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:2px}
+details.flow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+details.flow summary{cursor:pointer;font-size:14.5px}
+details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.big-pebble{width:46%;max-width:220px}
+.big-pebble svg{width:100%;height:auto}
+
+/* 안내 진행 */
+.run{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+.visual{width:min(220px,58vw);aspect-ratio:1;max-width:100%;display:grid;place-items:center;position:relative}
+.bcircle{width:72%;aspect-ratio:1;border-radius:50%;background:var(--moss-soft);border:2px solid var(--moss);animation:bre 10s ease-in-out infinite}
+@keyframes bre{0%{transform:scale(.62)}40%{transform:scale(1)}100%{transform:scale(.62)}}
+.bubbles{position:absolute;inset:0;overflow:hidden;border-radius:50%}
+.bubbles span{position:absolute;bottom:-30px;border:1.6px solid var(--moss);border-radius:50%;opacity:0;animation:rise var(--d) linear infinite;animation-delay:var(--w)}
+@keyframes rise{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:.85}80%{opacity:.6}95%{transform:translateY(-210px) scale(1);opacity:.6}100%{transform:translateY(-212px) scale(1.25);opacity:0}}
+.vpebble{width:80%;animation:float 10s ease-in-out infinite}
+.vpebble svg{width:100%;height:auto}
+@keyframes float{0%,100%{transform:translateY(4px)}50%{transform:translateY(-4px)}}
+.vletter{width:70%;aspect-ratio:1;border-radius:52% 48% 46% 54% / 58% 56% 44% 42%;background:var(--moss-soft);color:var(--moss);display:grid;place-items:center;
+  font-family:var(--serif);font-size:clamp(56px,16vw,84px);font-weight:700}
+.vcount{font-family:var(--serif);font-size:clamp(56px,16vw,80px);color:var(--moss);font-variant-numeric:tabular-nums;line-height:1}
+.vcount small{font-size:.35em;color:var(--muted)}
+.paused-run .bcircle,.paused-run .bubbles span,.paused-run .vpebble{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.bcircle,.bubbles span,.vpebble{animation:none}.bubbles span{opacity:.5;bottom:40%}}
+.rtag{font-size:13px;color:var(--moss);letter-spacing:.06em}
+.rtext{font-family:var(--serif);font-size:clamp(19px,5vw,23px);line-height:1.65;max-width:30ch;min-height:6.6em;text-wrap:pretty;margin:0}
+.rbar{width:100%;max-width:340px;height:4px;background:var(--line);border-radius:999px;overflow:hidden}
+.rbar i{display:block;height:100%;background:var(--moss);transition:width .25s linear}
+.rcontrols{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;width:100%;max-width:340px;align-items:center}
+.rcontrols .iconbtn{width:52px;height:52px;border:1px solid var(--line);background:var(--surface)}
+.rcontrols .iconbtn:disabled{opacity:.35;cursor:default}
+
+/* 마침 기록 */
+.field{display:flex;flex-direction:column;gap:8px}
+.field>span{font-size:14.5px}
+.tinput{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);width:100%}
+.follow{background:var(--moss);border-color:var(--moss);color:var(--surface);transition:background .25s}
+.follow .label{color:var(--surface);opacity:.85}
+.follow .btn{background:var(--surface);color:var(--moss);align-self:flex-start;margin-top:4px}
+.trees{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--muted)}
+.trees b{color:var(--ink);font-weight:700;margin-right:6px}
+.closing{font-family:var(--serif);font-size:18px;line-height:1.6}
+.actions{display:flex;flex-direction:column;gap:10px}
+.lognote{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.log li>span:first-child{min-width:0}
+.joybox{display:flex;flex-direction:column;gap:8px}
+.joy{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.joy b{font-family:var(--serif);font-weight:400;font-size:16px;display:block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom,0px));z-index:20;
+  background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <!-- 홈 -->
+  <section class="view" id="v-home" aria-label="홈">
+    <div class="brandrow">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 30V17M16 22l-4-3M16 20l4-3" stroke="var(--moss)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <circle cx="16" cy="11" r="8" fill="var(--moss-soft)"/><g fill="var(--lotus)"><circle cx="12" cy="9" r="1.8"/><circle cx="17" cy="7" r="1.8"/><circle cx="20" cy="12" r="1.8"/><circle cx="14" cy="14" r="1.8"/></g></svg>
+      <b>무우수</b><span>無憂樹</span>
+    </div>
+    <button class="seal" id="sealBtn" aria-haspopup="dialog">무우수?</button>
+    </div>
+    <div class="guide" id="inappGuide" hidden>
+      <b class="guide-title">카카오톡 안에서 열려 있어요</b>
+      <p>무우수를 제대로 쓰려면 인터넷 앱(크롬·사파리)에서 열어야 합니다.</p>
+      <button class="btn" id="openExternal">인터넷 앱으로 열기</button>
+      <p class="guide-steps" id="inappSteps"></p>
+    </div>
+    <div class="guide" id="installGuide" hidden>
+      <b class="guide-title">휴대폰 화면에 무우수 아이콘 만들기</b>
+      <div id="installSteps"></div>
+      <div class="guide-actions">
+        <button class="btn" id="guideInstall" hidden>설치하기</button>
+        <button class="btn ghost" id="guideLater">나중에</button>
+      </div>
+      <button class="linkbtn" id="guideNever">다시 보지 않기</button>
+    </div>
+    <div class="hello">
+      <span class="label num" id="hDate"></span>
+      <h1 id="hGreet">고요한 저녁입니다</h1>
+    </div>
+    <div class="gatha">
+      <span class="label">오늘의 한 구절</span>
+      <p id="hGatha"></p>
+    </div>
+    <button class="quick" id="quick" hidden>
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+      <span><small>지난번처럼 바로 시작</small><strong id="quickText"></strong></span>
+    </button>
+    <button class="today" id="todayBtn">
+      <span><span class="label">하루 5분 명상</span><br><b class="num" id="todayMin">0분</b>
+        <span class="goal" aria-hidden="true"><i id="goalBar" style="width:0%"></i></span></span>
+      <span class="muted">기록 보기 ›</span>
+    </button>
+    <button class="sos" id="sosBtn">
+      <span><b>마음이 흔들릴 때(1분명상)</b><br><span class="muted">멈추고 내쉬기 · 다섯 걸음</span></span>
+      <span class="muted">바로 시작 ›</span>
+    </button>
+    <nav class="menu" aria-label="메인 메뉴">
+      <details class="mm" data-mm="listen">
+        <summary>
+          <span class="mi mi-listen" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 17h20a10 10 0 0 1-20 0z"/><path d="M9 27h14"/><path d="M11 12c0-2 1.4-3 1.4-5M16 12c0-2 1.4-3 1.4-5M21 12c0-2 1.4-3 1.4-5"/></svg></span>
+          <span class="mt"><b>듣기명상</b><small>빗소리 · 범종 · 싱잉볼</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div class="mm-body"><div class="rows" id="soundRows"></div></div>
+      </details>
+      <details class="mm" data-mm="mind">
+        <summary>
+          <span class="mi mi-mind" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+            <path d="M16 26c-3-3-4.5-7-4-12 2.5 1.5 4 4.5 4 12z"/><path d="M16 26c3-3 4.5-7 4-12-2.5 1.5-4 4.5-4 12z"/>
+            <path d="M16 26c-5 0-9-2.5-11-7 4-.5 8 1.5 11 7z"/><path d="M16 26c5 0 9-2.5 11-7-4-.5-8 1.5-11 7z"/><path d="M16 26C14 20 14 12 16 6c2 6 2 14 0 20z"/></svg></span>
+          <span class="mt"><b>마음챙김</b><small>12가지 수련 · 한 문장씩 따라 하기</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div class="mm-body" id="practiceRows"></div>
+      </details>
+      <details class="mm" data-mm="sutra">
+        <summary>
+          <span class="mi mi-sutra" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M4 8c4-1.5 8-1.5 12 1 4-2.5 8-2.5 12-1v16c-4-1.5-8-1.5-12 1-4-2.5-8-2.5-12-1z"/><path d="M16 9v16"/><path d="M8 13h4M8 17h4M20 13h4M20 17h4"/></svg></span>
+          <span class="mt"><b>경전읽기</b><small>반야심경 · 천수경 · 금강경 외</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div class="mm-body"><div class="rows" id="sutraRows"></div></div>
+      </details>
+    </nav>
+  </section>
+
+  <!-- 기록 -->
+  <section class="view" id="v-records" hidden aria-label="기록">
+    <div class="headrow"><div class="hello"><span class="label">나의 수행</span><h1>기록</h1></div><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button></div>
+    <div class="tiles">
+      <div class="tile"><span class="label">오늘</span><b id="sToday">0<small>분</small></b></div>
+      <div class="tile"><span class="label" id="sPeriodLabel">최근 7일</span><b id="sWeek">0<small>분</small></b></div>
+      <div class="tile"><span class="label">연속</span><b id="sStreak">0<small>일</small></b></div>
+    </div>
+    <div class="section">
+      <div class="section-head"><h3 id="chartTitle">최근 7일</h3><span class="label" id="chartUnit">하루 앉은 시간(분)</span></div>
+      <div class="seg" role="tablist" aria-label="기간">
+        <button role="tab" data-period="week">주간</button><button role="tab" data-period="month">월간</button><button role="tab" data-period="year">연간</button>
+      </div>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="section" id="joySection" hidden>
+      <div class="section-head"><h3>기쁨 상자</h3><span class="label">오늘의 작은 기쁨에서 모은 순간</span></div>
+      <div class="joybox" id="joyList"></div>
+    </div>
+    <div class="section">
+      <div class="section-head"><h3>지난 명상</h3><button class="linkbtn" id="clearBtn">기록 지우기</button></div>
+      <div class="confirm" id="clearConfirm" hidden>
+        <span class="note">이 기기에 저장된 기록을 모두 지울까요?</span>
+        <button class="btn small" id="clearYes">지우기</button>
+        <button class="btn small ghost" id="clearNo">그만두기</button>
+      </div>
+      <ul class="log" id="log"></ul>
+    </div>
+    <p class="note">기록은 이 기기의 브라우저에만 저장됩니다. 30초 이상 앉은 명상만 남깁니다.</p>
+  </section>
+
+  <!-- 설정 -->
+  <section class="view" id="v-settings" hidden aria-label="설정">
+    <div class="headrow"><div class="hello"><span class="label">나에게 맞추기</span><h1>설정</h1></div><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button></div>
+    <div class="set">
+      <div>
+        <span>글자 크기</span>
+        <span class="note">글자와 버튼을 함께 키웁니다.</span>
+        <div class="chips" id="fsChips"></div>
+      </div>
+    </div>
+    <div class="set">
+      <div>
+        <span>듣기명상 준비 시간</span>
+        <span class="note">빗소리·범종·싱잉볼에서 시작을 누른 뒤 자리를 잡을 시간을 둡니다. 마음챙김은 늘 5초 카운트다운 뒤에 시작합니다.</span>
+        <div class="chips" id="prepChips"></div>
+      </div>
+      <div>
+        <label for="defVol">싱잉볼 · 범종 · 안내 소리 크기</label>
+        <input id="defVol" type="range" min="0" max="100">
+        <label for="rainVol">빗소리 시작 크기 (처음 50%)</label>
+        <input id="rainVol" type="range" min="0" max="100">
+      </div>
+      <div class="inline">
+        <span><label for="chimeSw">안내 종소리</label><br><span class="note">마음챙김 안내에서 문장이 바뀔 때 '띵' 하고 울립니다.</span></span>
+        <span class="switch"><input type="checkbox" id="chimeSw" role="switch"><span></span></span>
+      </div>
+      <div>
+        <span>소리 확인</span>
+        <span class="note">소리가 들리지 않으면 눌러 보세요. 아이폰은 옆면 무음 스위치와 볼륨 버튼도 확인해 주세요.</span>
+        <button class="btn small ghost" id="chimeTest" style="align-self:flex-start">종소리 들어 보기</button>
+      </div>
+      <div class="inline">
+        <span><label for="voiceSw">음성 안내</label><br><span class="note">마음챙김 12가지의 안내 문장을 녹음된 목소리로 들려줍니다. 끄면 글만 보며 따라 합니다.</span></span>
+        <span class="switch"><input type="checkbox" id="voiceSw" role="switch"><span></span></span>
+      </div>
+      <div>
+        <span>문장 뒤 고요한 시간</span>
+        <span class="note">안내 목소리가 한 문장을 마칠 때마다 이만큼 조용히 머문 뒤 다음 문장으로 넘어갑니다.</span>
+        <div class="chips" id="gapChips"></div>
+      </div>
+      <div class="inline">
+        <span><label for="wakeSw">화면 켜짐 유지</label><br><span class="note">재생하는 동안 화면이 꺼지지 않게 합니다.</span></span>
+        <span class="switch"><input type="checkbox" id="wakeSw" role="switch"><span></span></span>
+      </div>
+      <div id="installBox" hidden>
+        <span>홈 화면에 설치</span>
+        <span class="note">무우수를 휴대폰 홈 화면에 앱처럼 설치합니다. 설치하면 인터넷 없이도 열립니다.</span>
+        <button class="btn small" id="installBtn" style="align-self:flex-start">설치하기</button>
+      </div>
+    </div>
+    <div class="set">
+      <div><span>소리에 대하여</span>
+        <span class="note">싱잉볼, 범종, 빗소리는 녹음이 아니라 기기에서 바로 합성합니다. 휴대폰 스피커보다 이어폰에서 낮은 울림이 더 잘 들립니다.</span></div>
+    </div>
+  </section>
+
+  <!-- 소리 고르기 (들어간 화면) -->
+  <section class="view" id="v-sound" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-back aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2 id="sdTitle"></h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <div class="hero-art" id="sdArt"></div>
+    <div class="desc"><h1 id="sdName"></h1><p class="muted" id="sdDesc"></p></div>
+    <div class="section">
+      <span class="label">소리 지속 시간</span>
+      <div class="chips" id="sdChips" role="group" aria-label="소리 지속 시간"></div>
+      <div class="custom" id="sdCustom" hidden>
+        <input id="sdInput" type="number" min="1" max="720" step="1" inputmode="numeric" aria-label="직접입력 (분)"><span>분</span>
+      </div>
+      <p class="note num" id="sdNote"></p>
+    </div>
+    <button class="btn" id="sdStart">시작하기</button>
+  </section>
+
+  <!-- 재생 (들어간 화면) -->
+  <section class="view" id="v-player" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-back aria-label="작게 보기 (소리는 계속)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>
+      <h2 id="pTitle"></h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <div class="player" id="playerBox">
+      <div class="ring">
+        <svg class="track" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="2"/>
+          <circle id="prog" cx="50" cy="50" r="46" fill="none" stroke="var(--moss)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="0"/>
+        </svg>
+        <div class="center">
+          <div class="breath" id="pArt"></div>
+          <div class="time" id="pTime" aria-live="off">00:00</div>
+          <span class="label" id="pState">남은 시간</span>
+        </div>
+      </div>
+      <p class="hint" id="pHint"></p>
+      <div class="controls" id="pControls">
+        <button class="btn" id="pauseBtn">일시정지</button>
+        <button class="btn ghost" id="stopBtn">마치기</button>
+      </div>
+      <div class="controls" id="pDone" hidden>
+        <button class="btn" id="homeBtn">홈으로</button>
+        <button class="btn ghost" id="againBtn">한 번 더</button>
+      </div>
+      <label class="vol" for="vol">소리 크기 <input id="vol" type="range" min="0" max="100"></label>
+    </div>
+  </section>
+
+  <!-- 마음챙김 소개 -->
+  <section class="view" id="v-practice" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-back aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2>마음챙김</h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <div class="hero-art"><div class="big-pebble" id="prArt"></div></div>
+    <div class="desc"><span class="label" id="prGroup"></span><h1 id="prTitle"></h1><p class="muted" id="prSub"></p></div>
+    <div class="when"><span class="label">이럴 때 좋아요</span><span id="prWhen"></span></div>
+    <div class="section" id="prTimeBox">
+      <span class="label">시간</span>
+      <div class="chips" id="prChips" role="group" aria-label="시간"></div>
+    </div>
+    <div class="meta num" id="prMeta"></div>
+    <details class="flow"><summary>흐름 미리 보기</summary><ol id="prFlow"></ol></details>
+    <button class="btn" id="prStart">시작하기</button>
+  </section>
+
+  <!-- 마음챙김 진행 -->
+  <section class="view" id="v-run" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-back aria-label="그만하고 나가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <h2 id="rTitle"></h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <div class="run" id="runBox">
+      <div class="visual" id="rVisual"></div>
+      <span class="rtag num" id="rTag"></span>
+      <p class="rtext" id="rText" aria-live="polite"></p>
+      <div class="rbar" aria-hidden="true"><i id="rBar" style="width:0%"></i></div>
+      <span class="label num" id="rLeft"></span>
+      <div class="rcontrols">
+        <button class="iconbtn" id="rPrev" aria-label="이전 문장"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="btn" id="rPause">일시정지</button>
+        <button class="iconbtn" id="rNext" aria-label="다음 문장"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <p class="note" id="rHint"></p>
+    </div>
+  </section>
+
+  <!-- 마침 기록 -->
+  <section class="view" id="v-check" hidden>
+    <div class="topbar">
+      <span></span><h2 id="cTitle"></h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <p class="closing" id="cClosing"></p>
+    <div class="section" id="cFields"></div>
+    <div class="when follow" id="cFollow" hidden><span class="label">이 길로 가려면</span><span id="cFollowText"></span>
+      <button class="btn small" id="cFollowBtn" hidden></button></div>
+    <p class="note" id="cHint" hidden>지루함이나 산만함을 알아차린 것도 마음챙김입니다.</p>
+    <div class="actions">
+      <button class="btn" id="cSave">기록하고 마치기</button>
+      <button class="btn ghost" id="cSkip">메모 없이 마치기</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<div class="modal" id="aboutModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="sheet-head"><span class="seal seal-lg" aria-hidden="true">無憂樹</span><h2 id="aboutTitle">무우수?</h2>
+      <button class="iconbtn" id="aboutClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p>무우수(無憂樹)는 '근심 없는 나무'라는 뜻입니다. 무우수는 불교에서 3대 성수(聖樹) 중 하나로 꼽힙니다.</p>
+    <ul class="trees">
+      <li><b>무우수 (탄생)</b> 마야부인이 룸비니 동산에서 무우수 가지를 잡고 석가모니 부처님을 출산했다고 전해집니다. 따라서 '탄생'을 상징합니다.</li>
+      <li><b>보리수 (성도)</b> 부처님이 깨달음을 얻으신 나무.</li>
+      <li><b>사라수 (열반)</b> 부처님이 열반에 드신 나무.</li>
+    </ul>
+    <p class="note seal-note">1980년대부터 부경대학교 불교학생회에서 발간한 소식지의 이름이기도 합니다.</p>
+  </div>
+</div>
+
+<div class="mini" id="mini" hidden>
+  <div class="mini-in">
+    <button class="mini-open" id="miniOpen" aria-label="재생 화면 열기">
+      <span class="thumb" id="miniArt"></span>
+      <span><b id="miniName"></b><span id="miniTime"></span></span>
+    </button>
+    <button class="iconbtn" id="miniPause" aria-label="일시정지"></button>
+    <button class="iconbtn" id="miniStop" aria-label="마치기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar" aria-label="메뉴">
+  <div class="tabbar-in">
+    <button class="tab" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>홈</span></button>
+    <button class="tab" data-tab="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/></svg><span>기록</span></button>
+    <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>설정</span></button>
+  </div>
+</nav>
+
+<script>
+/* ---------- 그림 ---------- */
+const ART = {
+bowl:`<svg viewBox="0 0 200 150" aria-hidden="true">
+  <ellipse cx="100" cy="128" rx="78" ry="10" fill="var(--line)"/>
+  <path d="M30 62 Q34 122 100 124 Q166 122 170 62 Z" fill="var(--brass)"/>
+  <ellipse cx="100" cy="62" rx="70" ry="14" fill="var(--brass)"/>
+  <ellipse cx="100" cy="62" rx="62" ry="10" fill="var(--ink)" opacity=".55"/>
+  <path d="M40 84 Q100 98 160 84" fill="none" stroke="var(--surface)" stroke-width="2" opacity=".35"/>
+  <rect x="120" y="22" width="60" height="9" rx="4.5" fill="var(--moss)" transform="rotate(28 150 26)"/>
+  <path d="M100 38 q-8 -10 0 -20 M84 40 q-6 -8 0 -15 M116 40 q6 -8 0 -15" fill="none" stroke="var(--brass)" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
+</svg>`,
+bell:`<svg viewBox="0 0 200 150" aria-hidden="true">
+  <rect x="36" y="10" width="128" height="7" rx="3" fill="var(--moss)"/>
+  <rect x="94" y="17" width="12" height="12" fill="var(--moss)"/>
+  <path d="M100 29 C70 29 62 46 62 70 L60 122 Q100 132 140 122 L138 70 C138 46 130 29 100 29 Z" fill="var(--brass)"/>
+  <path d="M60 122 Q100 132 140 122 L142 128 Q100 139 58 128 Z" fill="var(--brass)" opacity=".8"/>
+  <path d="M66 52 L134 52 M64 108 L136 108" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/>
+  <circle cx="100" cy="92" r="9" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".4"/>
+  <circle cx="100" cy="92" r="3" fill="var(--ink)" opacity=".4"/>
+  <g fill="var(--ink)" opacity=".3"><circle cx="76" cy="62" r="2.2"/><circle cx="84" cy="62" r="2.2"/><circle cx="116" cy="62" r="2.2"/><circle cx="124" cy="62" r="2.2"/></g>
+  <rect x="150" y="80" width="46" height="10" rx="5" fill="var(--muted)"/>
+</svg>`,
+lotus:`<svg viewBox="0 0 200 150" aria-hidden="true">
+  <g stroke="var(--moss)" stroke-width="1.4" stroke-linecap="round" opacity=".55">
+    <path d="M30 10 l-4 14"/><path d="M62 4 l-4 14"/><path d="M150 8 l-4 14"/><path d="M178 20 l-4 14"/><path d="M110 2 l-4 12"/>
+  </g>
+  <ellipse cx="100" cy="128" rx="84" ry="12" fill="var(--moss)" opacity=".25"/>
+  <ellipse cx="44" cy="124" rx="30" ry="7" fill="var(--moss)" opacity=".6"/>
+  <ellipse cx="158" cy="126" rx="26" ry="6" fill="var(--moss)" opacity=".6"/>
+  <path d="M100 116 C70 112 52 92 50 74 C70 78 88 92 100 116Z" fill="var(--lotus)" opacity=".7"/>
+  <path d="M100 116 C130 112 148 92 150 74 C130 78 112 92 100 116Z" fill="var(--lotus)" opacity=".7"/>
+  <path d="M100 116 C76 104 70 74 78 52 C92 66 100 90 100 116Z" fill="var(--lotus)" opacity=".85"/>
+  <path d="M100 116 C124 104 130 74 122 52 C108 66 100 90 100 116Z" fill="var(--lotus)" opacity=".85"/>
+  <path d="M100 116 C88 96 88 62 100 40 C112 62 112 96 100 116Z" fill="var(--lotus)"/>
+  <ellipse cx="100" cy="117" rx="16" ry="3" fill="var(--brass)" opacity=".6"/>
+</svg>`
+};
+const ICON = {
+  pause:'<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>',
+  play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>'
+};
+
+const SOUNDS = {
+  bowl:{id:'bowl',name:'싱잉볼',sub:'한 번의 울림이 30초 동안 이어집니다',
+    desc:'놋쇠 볼을 한 번 치면 맑은 울림이 30초에 걸쳐 천천히 사라지고, 사라질 즈음 다시 칩니다.',
+    presets:[1,5,10,30,60],def:10,gap:30,hint:'울림이 사라지는 끝을 따라 숨을 내쉬어 보세요.'},
+  bell:{id:'bell',name:'범종',sub:'깊은 맥놀이가 30초마다 울립니다',
+    desc:'절 마당의 큰 종처럼 낮게 일렁이는 소리가 30초마다 울립니다. 이어폰으로 들으면 아래쪽 울림까지 느낄 수 있습니다.',
+    presets:[1,5,10,30,60],def:10,gap:30,hint:'종이 한 번 울릴 때마다 지금 이 자리로 돌아옵니다.'},
+  lotus:{id:'lotus',name:'빗소리',sub:'연못 위로 내리는 비, 15초마다 먼 천둥',
+    desc:'연잎 위로 비가 고르게 내리고, 15초마다 멀리서 천둥이 낮게 굴러갑니다. 잠들기 전에도 좋습니다.',
+    presets:[30,60,120,240],def:60,hint:'빗소리에 기대어 몸의 힘을 내려놓으세요.'}
+};
+const ORDER=['lotus','bell','bowl'];
+const SV=(d,cls)=>`<span class="si ${cls||''}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg></span>`;
+const SICON={
+  lotus:SV('<path d="M7 14a4 4 0 0 1 .4-8 5 5 0 0 1 9.6 1.4A3.4 3.4 0 0 1 17 14z"/><path d="M8.5 17l-1 3M12.5 17l-1 3M16.5 17l-1 3"/>','si-rain'),
+  bell:SV('<path d="M5 3h14M12 3v2.5"/><path d="M7.5 19v-7.5a4.5 4.5 0 0 1 9 0V19"/><path d="M6 19h12"/><circle cx="12" cy="15" r="1.3"/>','si-brass'),
+  bowl:SV('<path d="M4 12h16a8 8 0 0 1-16 0z"/><path d="M8.5 21h7"/><path d="M15 4.5l5 3.5"/>','si-brass')
+};
+const GATHAS=[
+  '들숨에 몸을 알아차리고, 날숨에 어깨를 내려놓습니다.',
+  '숨과 숨 사이의 짧은 쉼에 잠시 머물러 봅니다.',
+  '고요함은 멀리 있지 않습니다. 다음 숨 하나에 있습니다.',
+  '지금 이 순간을 따뜻한 눈으로 바라봅니다.',
+  '바꿀 것도, 고칠 것도 없습니다. 지금은 그냥 숨 쉬면 됩니다.',
+  '생각이 떠오르면 "생각"이라고 짚어 주고, 숨으로 돌아옵니다.',
+  '생각이 늘 사실은 아닙니다.',
+  '감정은 일어났다 사라집니다. 나는 그것을 바라볼 수 있습니다.',
+  '아픔을 밀어낼수록 괴로움은 커집니다.',
+  '있는 그대로 받아들이는 것은 포기가 아니라, 지혜로운 선택의 시작입니다.',
+  '매 순간이 새로운 시작입니다. 지금 다시 시작하면 됩니다.',
+  '같은 자리에서 자꾸 넘어진다면, 그 자리를 알아차린 것부터가 시작입니다.',
+  '멈추고, 세 번 내쉬고, 발바닥을 느끼면 다음 한 걸음이 보입니다.',
+  '반응하기 전에 숨 한 번. 그 사이에 선택이 있습니다.',
+  '작은 기쁨은 대단하지 않습니다. 얼굴을 스치는 바람 하나면 충분합니다.',
+  '지루함도, 산만함도 알아차리면 수련이 됩니다.',
+  '산은 바람이 불어도 그 자리에 있습니다.',
+  '흔들리다 다시 균형을 잡는 것, 그것이 균형입니다.',
+  '몸이 보내는 말에 귀를 기울여 봅니다.',
+  '한 입을 처음 먹는 것처럼 먹어 봅니다.',
+  '신발을 신는 그 순간에도 온전히 머물 수 있습니다.',
+  '소리가 사라지는 곳까지 귀를 기울여 봅니다.',
+  '빗방울 하나에 숨 하나, 서두를 일이 없습니다.',
+  '내가 평안하기를. 내가 행복하기를.',
+  '모든 생명이 평안하기를.',
+  '하루 5분, 나를 위해 조용히 앉아 봅니다.',
+  '지나간 날은 만날 수 없고 오지 않은 날도 만날 수 없습니다. 만날 수 있는 것은 지금뿐입니다.',
+  '모든 것은 순간순간 변합니다. 이 감정도 지나갑니다.',
+  '나를 탓하는 목소리가 들리면, 그것도 하나의 생각임을 알아차립니다.',
+  '오늘 하루도 여기까지 잘 왔습니다.'
+];
+const fmtPreset=m=>m>=60&&m%60===0?(m/60)+'시간':(m>=60?Math.floor(m/60)+'시간 '+(m%60)+'분':m+'분');
+const $=id=>document.getElementById(id);
+
+/* ---------- 저장 ---------- */
+function load(k,d){try{const v=localStorage.getItem('gyo:'+k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem('gyo:'+k,JSON.stringify(v))}catch(e){}}
+const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1.12},load('settings',{}));
+if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(settings.gap===3) settings.gap=5; settings.sv2=1; save('settings',settings); }
+const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
+let sessions=load('sessions',[]);   // {t, id, sec}
+let last=load('last',null);         // {id, min}
+const chosen={bowl:SOUNDS.bowl.def,bell:SOUNDS.bell.def,lotus:SOUNDS.lotus.def};
+if(last&&chosen[last.id]) chosen[last.id]=last.min;
+
+/* ---------- 화면 이동 ---------- */
+const TABS=['home','records','settings'];
+let route={name:'home'}, depth=0, histOK=true, fallback=[];
+function show(r){
+  route=r;
+  if(r.name==='run' && !runState) r={name:'home'};
+  if(r.name==='check' && !checkState) r={name:'home'};
+  if(r.name!=='run' && runState) stopRun();
+  route=r;
+  ['home','records','settings','sound','player','practice','run','check'].forEach(n=>$('v-'+n).hidden=(n!==r.name));
+  const isTab=TABS.includes(r.name);
+  $('tabbar').hidden=!isTab;
+  document.body.classList.toggle('no-nav',!isTab);
+  document.querySelectorAll('.tab').forEach(t=>{ if(t.dataset.tab===r.name) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current'); });
+  if(r.name==='home') renderHome();
+  if(r.name==='records') renderRecords();
+  if(r.name==='settings') renderSettings();
+  if(r.name==='sound') renderSound(r.id);
+  if(r.name==='practice') renderPractice(r.id);
+  if(r.name==='check') renderCheck();
+  updateMini();
+  window.scrollTo({top:0});
+}
+function go(r){
+  show(r);
+  try{history.pushState(r,'','#'+(r.id||r.name)); depth++;}catch(e){histOK=false; fallback.push(r);}
+}
+function back(){
+  if(histOK && depth>0){ history.back(); return; }
+  fallback.pop(); show(fallback[fallback.length-1]||{name:'home'});
+}
+function tab(name){
+  // 탭끼리는 쌓지 않고 바꿔치기
+  if(histOK && depth>0){ pendingTab=name; const n=depth; depth=0; history.go(-n); return; }
+  fallback=[]; show({name});
+  try{history.replaceState({name},'','#'+name)}catch(e){}
+}
+let pendingTab=null;
+window.addEventListener('popstate',e=>{
+  if(pendingTab){ const name=pendingTab; pendingTab=null; show({name}); try{history.replaceState({name},'','#'+name)}catch(err){} return; }
+  depth=Math.max(0,depth-1); show(e.state&&e.state.name?e.state:{name:'home'});
+});
+document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',back));
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>tab(t.dataset.tab)));
+$('todayBtn').addEventListener('click',()=>tab('records'));
+document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>{
+  if(route.name==='check'){ closeCheck(false); return; }
+  tab('home');
+}));
+setInterval(()=>{ if(route.name==='home') renderHome(); },60000);
+
+/* ---------- 홈 ---------- */
+function renderHome(){
+  const d=new Date(), h=d.getHours();
+  $('hDate').textContent=d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
+  $('hGreet').textContent= h<5?'고요한 새벽입니다': h<11?'맑은 아침입니다': h<17?'편안한 오후입니다': h<21?'고요한 저녁입니다':'깊은 밤입니다';
+  const dayNo=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+  $('hGatha').textContent=GATHAS[dayNo%GATHAS.length];
+  if(last&&SOUNDS[last.id]){ $('quick').hidden=false; $('quickText').textContent=SOUNDS[last.id].name+' · '+fmtPreset(last.min); }
+  else $('quick').hidden=true;
+  const tsec=stats().today;
+  $('todayMin').textContent=fmtMin(tsec)+(tsec>=300?' · 오늘 채웠습니다':' / 5분');
+  $('goalBar').style.width=Math.min(100,tsec/3)+'%';
+}
+$('soundRows').innerHTML=ORDER.map(id=>{const s=SOUNDS[id];return `<button class="row ic" data-sound="${id}">
+  ${SICON[id]}<span><h4>${s.name}</h4><p>${s.sub}</p></span>${ICON.chev}</button>`}).join('');
+document.querySelectorAll('[data-sound]').forEach(b=>b.addEventListener('click',()=>go({name:'sound',id:b.dataset.sound})));
+$('quick').addEventListener('click',()=>{ chosen[last.id]=last.min; startSession(last.id); });
+
+/* ---------- 소리 화면 ---------- */
+function renderSound(id){
+  const s=SOUNDS[id];
+  $('sdTitle').textContent=s.name; $('sdName').textContent=s.name; $('sdDesc').textContent=s.desc;
+  $('sdArt').innerHTML=ART[id];
+  const isPreset=s.presets.includes(chosen[id]);
+  $('sdChips').innerHTML=s.presets.map(m=>`<button class="chip" data-m="${m}" aria-pressed="${isPreset&&m===chosen[id]}">${fmtPreset(m)}</button>`).join('')
+    +`<button class="chip" data-m="custom" aria-pressed="${!isPreset}">직접입력</button>`;
+  $('sdCustom').hidden=isPreset; $('sdInput').value=chosen[id];
+  $('sdChips').querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{
+    $('sdChips').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed','false'));
+    ch.setAttribute('aria-pressed','true');
+    if(ch.dataset.m==='custom'){ $('sdCustom').hidden=false; $('sdInput').focus(); chosen[id]=clampMin($('sdInput').value,s.def); }
+    else { $('sdCustom').hidden=true; chosen[id]=+ch.dataset.m; }
+    soundNote(id);
+  }));
+  soundNote(id);
+}
+function clampMin(v,d){v=Math.round(+v);return v>=1?Math.min(720,v):d}
+function soundNote(id){
+  const s=SOUNDS[id], m=chosen[id];
+  $('sdNote').textContent = s.gap ? `${fmtPreset(m)} 동안 ${Math.ceil(m*60/s.gap)}번 울립니다.` : `${fmtPreset(m)} 동안 이어지고, 천둥은 약 ${Math.floor(m*60/15)}번 들립니다.`;
+}
+$('sdInput').addEventListener('input',()=>{ chosen[route.id]=clampMin($('sdInput').value,SOUNDS[route.id].def); soundNote(route.id); });
+$('sdStart').addEventListener('click',()=>startSession(route.id));
+
+/* ---------- 소리 엔진 ---------- */
+let ctx=null, master, out, _noise=null, timerId, schedId, wake=null;
+let cur=null, total=0, remaining=0, prepLeft=0, paused=false, done=false, lastTick=0, startAt=0, nextStrike=0, nextThunder=0;
+
+function noiseBuf(sec){const len=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;return b}
+// 배음: [배율, 세기, 울림 길이(초), 맥놀이(Hz)]
+function strike(t,partials,base,gain){
+  partials.forEach(([ratio,amp,decay,beat])=>{
+    const pair=beat?[0,beat]:[0];
+    pair.forEach(b=>{
+      const o=ctx.createOscillator(),g=ctx.createGain(),peak=amp*gain/pair.length;
+      o.type='sine'; o.frequency.value=base*ratio+b;
+      g.gain.setValueAtTime(0.00001,t);
+      g.gain.linearRampToValueAtTime(peak,t+0.012);
+      g.gain.exponentialRampToValueAtTime(Math.max(peak*0.003,0.00001),t+decay);
+      g.gain.linearRampToValueAtTime(0,t+decay+0.5);
+      o.connect(g).connect(master); o.start(t); o.stop(t+decay+0.6);
+    });
+  });
+}
+function mallet(t,freq,amt){
+  const n=ctx.createBufferSource(); n.buffer=_noise;
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq;
+  const g=ctx.createGain(); g.gain.setValueAtTime(amt,t); g.gain.exponentialRampToValueAtTime(0.0001,t+.15);
+  n.connect(f).connect(g).connect(master); n.start(t); n.stop(t+.2);
+}
+function bowlStrike(t){ strike(t,[[1,.55,30,1.0],[2.76,.30,22,1.7],[5.4,.12,12],[8.9,.05,6]],220,1); mallet(t,2400,.06); }
+function bellStrike(t){ strike(t,[[.38,.30,30,.33],[1,.60,28,.35],[1.36,.22,20],[2.0,.30,16,.6],[2.52,.16,12],[3.0,.12,9],[4.07,.07,6],[5.4,.04,4]],168,1); mallet(t,900,.35); }
+function thunder(t){
+  const s=ctx.createBufferSource(); s.buffer=_noise; s.loop=true; s.loopStart=Math.random()*2;
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.Q.value=.8;
+  f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(160,t+6);
+  const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=900;
+  const g=ctx.createGain(), k=.55+Math.random()*.3;
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(.55*k,t+.8); g.gain.linearRampToValueAtTime(.25*k,t+1.7);
+  g.gain.linearRampToValueAtTime(.65*k,t+2.5); g.gain.linearRampToValueAtTime(.30*k,t+3.6); g.gain.exponentialRampToValueAtTime(0.0001,t+7);
+  s.connect(f).connect(f2).connect(g).connect(master); s.start(t); s.stop(t+7.2);
+}
+function startRain(t){
+  const layer=(type,freq,q,gain)=>{
+    const s=ctx.createBufferSource(); s.buffer=_noise; s.loop=true; s.loopStart=Math.random();
+    const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q;
+    const g=ctx.createGain(); g.gain.value=gain; s.connect(f).connect(g).connect(master); s.start(t); return g;
+  };
+  layer('lowpass',380,.7,.55); const mid=layer('bandpass',1400,.5,.35); layer('highpass',5200,.7,.06);
+  const lfo=ctx.createOscillator(),lg=ctx.createGain(); lfo.frequency.value=.07; lg.gain.value=.12; lfo.connect(lg).connect(mid.gain); lfo.start(t);
+}
+function drops(now){
+  const n=2+Math.floor(Math.random()*4);
+  for(let i=0;i<n;i++){
+    const t=now+Math.random()*.9,o=ctx.createOscillator(),g=ctx.createGain();
+    o.frequency.setValueAtTime(1800+Math.random()*1600,t); o.frequency.exponentialRampToValueAtTime(600,t+.04);
+    g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(.02+Math.random()*.03,t+.003); g.gain.exponentialRampToValueAtTime(0.0001,t+.06);
+    o.connect(g).connect(master); o.start(t); o.stop(t+.08);
+  }
+}
+
+/* ---------- 재생 흐름 ---------- */
+const CIRC=289.03;
+function fmt(s){s=Math.max(0,Math.ceil(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (h?h+':'+String(m).padStart(2,'0'):String(m).padStart(2,'0'))+':'+String(x).padStart(2,'0')}
+
+async function startSession(id){
+  unlockAudio(); keepAlive(true);
+  if(ctx) endSession(false);
+  const s=SOUNDS[id]; cur=s; total=remaining=chosen[id]*60; prepLeft=settings.prep; paused=false; done=false;
+  last={id,min:chosen[id]}; save('last',last);
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  try{ ctx.resume(); }catch(e){}
+  _noise=noiseBuf(4);
+  const comp=ctx.createDynamicsCompressor(); comp.threshold.value=-10; comp.knee.value=12; comp.ratio.value=4; comp.attack.value=.005; comp.release.value=.4;
+  out=ctx.createGain(); out.gain.value=sessVol(id)/100; out.connect(comp).connect(ctx.destination);
+  startAt=ctx.currentTime+prepLeft+.3;
+  master=ctx.createGain(); master.gain.setValueAtTime(0,ctx.currentTime); master.gain.setValueAtTime(0,startAt);
+  master.gain.linearRampToValueAtTime(1,startAt+(id==='lotus'?4:.05)); master.connect(out);
+  if(id==='lotus'){ startRain(startAt); nextThunder=startAt+15; } else nextStrike=startAt;
+  $('pTitle').textContent=s.name+' · '+fmtPreset(chosen[id]);
+  $('pArt').innerHTML=ART[id]; $('pHint').textContent=prepLeft?'자리를 잡고 숨을 고르세요.':s.hint;
+  $('pControls').hidden=false; $('pDone').hidden=true; $('vol').value=sessVol(id);
+  setPauseUI();
+  if(route.name==='player') show(route); else go({name:'player'});
+  render(); lastTick=performance.now();
+  timerId=setInterval(tick,250); schedId=setInterval(schedule,200); schedule();
+  if(settings.wake){ try{ wake=await navigator.wakeLock?.request('screen'); }catch(e){} }
+}
+function schedule(){
+  if(!ctx||paused||done) return;
+  const now=ctx.currentTime;
+  if(cur.id==='lotus'){
+    if(now>startAt && Math.random()<.5) drops(now);
+    while(nextThunder<now+.5){ if(nextThunder-startAt<total-8) thunder(nextThunder); nextThunder+=15; }
+    return;
+  }
+  while(nextStrike<now+.5 && (nextStrike-startAt)<total-0.5){
+    cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); nextStrike+=cur.gap;
+  }
+}
+function tick(){
+  const t=performance.now(),dt=(t-lastTick)/1000; lastTick=t;
+  if(paused||done) return;
+  if(prepLeft>0){ prepLeft-=dt; if(prepLeft<=0) $('pHint').textContent=cur.hint; render(); return; }
+  remaining-=dt; render();
+  if(remaining<=0) finish();
+}
+function render(){
+  const prep=prepLeft>0;
+  $('pTime').textContent=prep?fmt(prepLeft):fmt(remaining);
+  $('pState').textContent=done?'마쳤습니다':paused?'잠시 멈춤':prep?'곧 시작합니다':'남은 시간';
+  $('prog').setAttribute('stroke-dashoffset',(CIRC*(1-remaining/total)).toFixed(2));
+  $('playerBox').classList.toggle('still',paused||done||prep);
+  updateMini();
+}
+function setPauseUI(){
+  $('pauseBtn').textContent=paused?'이어서':'일시정지';
+  $('miniPause').innerHTML=paused?ICON.play:ICON.pause;
+  $('miniPause').setAttribute('aria-label',paused?'이어서':'일시정지');
+}
+function togglePause(){
+  if(!ctx||done) return;
+  paused=!paused;
+  if(paused) ctx.suspend(); else { ctx.resume(); lastTick=performance.now(); }
+  setPauseUI(); render();
+}
+function record(){
+  const sec=Math.round(total-remaining);
+  if(sec>=30){ sessions.unshift({t:Date.now(),id:cur.id,sec}); sessions=sessions.slice(0,500); save('sessions',sessions); }
+}
+function closeAudio(fade){
+  setTimeout(()=>keepAlive(false),(fade+.6)*1000);
+  clearInterval(timerId); clearInterval(schedId);
+  if(ctx){ const c=ctx,m=master,now=c.currentTime;
+    if(c.state==='suspended') c.resume();
+    m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value,now); m.gain.linearRampToValueAtTime(0,now+fade);
+    setTimeout(()=>c.close().catch(()=>{}),(fade+.5)*1000); }
+  ctx=null;
+  try{wake?.release();}catch(e){} wake=null;
+}
+function finish(){
+  remaining=0; done=true; record();
+  closeAudio(cur.id==='lotus'?6:3);
+  $('pHint').textContent='수고하셨습니다. '+fmtPreset(Math.round(total/60))+'을 기록했습니다.';
+  $('pControls').hidden=true; $('pDone').hidden=false;
+  render(); updateMini();
+}
+function endSession(navigate){
+  if(!ctx&&!done){ return; }
+  if(!done){ record(); closeAudio(1.2); }
+  done=true; ctx=null; prepLeft=0; paused=false;
+  updateMini();
+  if(navigate) tab('home');
+}
+$('pauseBtn').addEventListener('click',togglePause);
+$('stopBtn').addEventListener('click',()=>{ endSession(false); $('pHint').textContent='여기서 마칩니다. '+(total-remaining>=30?'기록에 남겼습니다.':''); $('pControls').hidden=true; $('pDone').hidden=false; render(); });
+$('homeBtn').addEventListener('click',()=>tab('home'));
+$('againBtn').addEventListener('click',()=>startSession(cur.id));
+$('vol').addEventListener('input',e=>{ const v=+e.target.value; if(cur&&cur.id==='lotus') settings.rainVol=v; else settings.volume=v; save('settings',settings); try{ if(out&&ctx) out.gain.setTargetAtTime(v/100,ctx.currentTime,.05);}catch(err){} });
+
+/* ---------- 작은 재생바 ---------- */
+function updateMini(){
+  const show=!!ctx && !done && route.name!=='player';
+  $('mini').hidden=!show; document.body.classList.toggle('has-mini',show);
+  if(!show) return;
+  $('miniArt').innerHTML=ART[cur.id]; $('miniName').textContent=cur.name;
+  $('miniTime').textContent=(paused?'멈춤 · ':prepLeft>0?'준비 · ':'남은 ')+fmt(prepLeft>0?prepLeft:remaining);
+}
+$('miniOpen').addEventListener('click',()=>go({name:'player'}));
+$('miniPause').addEventListener('click',togglePause);
+$('miniStop').addEventListener('click',()=>{ endSession(false); });
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&ctx&&!paused&&!wake&&settings.wake){ try{wake=await navigator.wakeLock?.request('screen');}catch(e){} }
+});
+
+/* ---------- 기록 ---------- */
+const dayKey=d=>{d=new Date(d);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+function fmtMin(sec){const m=Math.round(sec/60);return m>=60?Math.floor(m/60)+'시간 '+(m%60)+'분':m+'분'}
+function stats(){
+  const by={}; sessions.forEach(s=>{const k=dayKey(s.t);by[k]=(by[k]||0)+s.sec});
+  const today=new Date(); const days=[];
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);days.push({d,sec:by[dayKey(d)]||0})}
+  let streak=0; const d=new Date(today);
+  if(!by[dayKey(d)]) d.setDate(d.getDate()-1);
+  while(by[dayKey(d)]){streak++;d.setDate(d.getDate()-1)}
+  return {today:by[dayKey(today)]||0, week:days.reduce((a,b)=>a+b.sec,0), streak, days, by};
+}
+function renderRecords(){
+  const st=stats();
+  const per=settings.period||'week';
+  document.querySelectorAll('[data-period]').forEach(b=>b.setAttribute('aria-selected',b.dataset.period===per));
+  const today=new Date(), bars=[];
+  if(per==='year'){
+    for(let i=11;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth()-i,1);
+      let sec=0; sessions.forEach(x=>{const t=new Date(x.t); if(t.getFullYear()===d.getFullYear()&&t.getMonth()===d.getMonth()) sec+=x.sec;});
+      bars.push({sec,label:(d.getMonth()+1)+'월',show:true,isNow:i===0});}
+  } else {
+    const n=per==='month'?30:7, wd=['일','월','화','수','목','금','토'];
+    for(let i=n-1;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);
+      bars.push({sec:st.by[dayKey(d)]||0,label:i===0?'오늘':(per==='week'?wd[d.getDay()]:d.getDate()+''),show:per==='week'||i===0||(i%5===0&&i>2),isNow:i===0});}
+  }
+  const periodSec=bars.reduce((a,b)=>a+b.sec,0);
+  const pl={week:['최근 7일','하루 앉은 시간(분)'],month:['최근 30일','하루 앉은 시간(분)'],year:['최근 12개월','달마다 앉은 시간(분)']}[per];
+  $('chartTitle').textContent=pl[0]; $('chartUnit').textContent=pl[1]; $('sPeriodLabel').textContent=pl[0];
+  $('sToday').innerHTML=Math.round(st.today/60)+'<small>분</small>';
+  const pm=Math.round(periodSec/60);
+  $('sWeek').innerHTML=pm>=600?(Math.round(pm/6)/10)+'<small>시간</small>':pm+'<small>분</small>';
+  $('sStreak').innerHTML=st.streak+'<small>일</small>';
+  const W=320,H=150,pad=22,left=30, n=bars.length, slot=(W-left-4)/n, bw=Math.min(26,slot*.7);
+  const maxM=Math.max(10,...bars.map(x=>Math.round(x.sec/60)));
+  const step=maxM>200?100:maxM>50?20:10, top=Math.ceil(maxM/step)*step, sy=v=>H-pad-(v/top)*(H-pad-16);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${pl[0]} 명상 시간">`;
+  [0,top/2,top].forEach(v=>{svg+=`<line x1="${left}" x2="${W-4}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)" stroke-width="1"/><text x="${left-6}" y="${sy(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`});
+  bars.forEach((x,i)=>{
+    const m=Math.round(x.sec/60), cx=left+slot*(i+.5), y=sy(m);
+    svg+=`<rect x="${cx-bw/2}" y="${y}" width="${bw}" height="${Math.max(0,H-pad-y)}" rx="${Math.min(5,bw/3)}" fill="${x.isNow?'var(--moss)':'var(--moss-soft)'}"/>`;
+    if(m&&n<=12) svg+=`<text x="${cx}" y="${y-4}" text-anchor="middle" font-size="10" fill="var(--ink)">${m}</text>`;
+    if(x.show) svg+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="${n>12?10:11}" fill="${x.isNow?'var(--ink)':'var(--muted)'}">${x.label}</text>`;
+  });
+  $('chart').innerHTML=svg+'</svg>';
+  $('log').innerHTML=sessions.length? sessions.slice(0,30).map(s=>{const d=new Date(s.t);
+    const name=SOUNDS[s.id]?.name||PMAP[s.id]?.title||'';
+    const note=s.note?noteSummary(s.note):'';
+    return `<li><span>${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${esc(name)}${note?`<span class="lognote">${esc(note)}</span>`:''}</span><span class="muted">${s.sec<60?s.sec+'초':fmtMin(s.sec)}</span></li>`}).join('')
+    : '<li class="empty">아직 기록이 없습니다. 홈에서 듣기명상이나 마음챙김을 하나 골라 시작해 보세요.</li>';
+  const joys=sessions.filter(s=>s.id==='joy'&&s.note&&s.note.moment);
+  $('joySection').hidden=!joys.length;
+  $('joyList').innerHTML=joys.slice(0,12).map(s=>{const d=new Date(s.t);
+    return `<div class="joy"><span class="label num">${d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})}</span><b>${esc(s.note.moment)}</b>${s.note.feel&&s.note.feel.length?`<span class="lognote">${esc(s.note.feel.join(', '))}</span>`:''}</div>`}).join('');
+  $('clearBtn').hidden=!sessions.length; $('clearConfirm').hidden=true;
+}
+document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click',()=>{settings.period=b.dataset.period;save('settings',settings);renderRecords();}));
+$('clearBtn').addEventListener('click',()=>{$('clearConfirm').hidden=false;$('clearBtn').hidden=true});
+$('clearNo').addEventListener('click',renderRecords);
+$('clearYes').addEventListener('click',()=>{sessions=[];save('sessions',sessions);renderRecords()});
+
+/* ---------- 설정 ---------- */
+function renderSettings(){
+  $('gapChips').innerHTML=[3,5,10].map(v=>`<button class="chip" data-g="${v}" aria-pressed="${settings.gap===v}">${v}초</button>`).join('');
+  $('gapChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{settings.gap=+c.dataset.g;save('settings',settings);renderSettings()}));
+  $('prepChips').innerHTML=[0,5,10,30].map(v=>`<button class="chip" data-p="${v}" aria-pressed="${settings.prep===v}">${v?v+'초':'없음'}</button>`).join('');
+  $('prepChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{settings.prep=+c.dataset.p;save('settings',settings);renderSettings()}));
+  renderFs(); $('defVol').value=settings.volume; $('rainVol').value=settings.rainVol; $('wakeSw').checked=settings.wake; $('chimeSw').checked=settings.chime; renderVoice();
+}
+$('chimeSw').addEventListener('change',e=>{settings.chime=e.target.checked;save('settings',settings);});
+function renderVoice(){ $('voiceSw').checked=settings.voice; }
+if('speechSynthesis' in window){ try{ speechSynthesis.addEventListener('voiceschanged',()=>{ if(route.name==='settings') renderVoice(); }); }catch(e){} }
+$('voiceSw').addEventListener('change',e=>{settings.voice=e.target.checked;save('settings',settings);if(!settings.voice)hush();renderVoice();});
+$('chimeTest').addEventListener('click',()=>{ const was=settings.chime; settings.chime=true; chime('long'); settings.chime=was; });
+
+$('defVol').addEventListener('input',e=>{settings.volume=+e.target.value;save('settings',settings);if(cur&&cur.id!=='lotus'){$('vol').value=settings.volume;try{if(out&&ctx)out.gain.setTargetAtTime(settings.volume/100,ctx.currentTime,.05)}catch(err){}}});
+$('rainVol').addEventListener('input',e=>{settings.rainVol=+e.target.value;save('settings',settings);if(cur&&cur.id==='lotus'){$('vol').value=settings.rainVol;try{if(out&&ctx)out.gain.setTargetAtTime(settings.rainVol/100,ctx.currentTime,.05)}catch(err){}}});
+$('wakeSw').addEventListener('change',e=>{settings.wake=e.target.checked;save('settings',settings);if(!settings.wake){try{wake?.release()}catch(err){}wake=null}});
+
+/* ---------- 마음챙김 ---------- */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PEBBLE=n=>`<svg viewBox="0 0 200 150" aria-hidden="true">
+  <ellipse cx="100" cy="132" rx="70" ry="8" fill="var(--line)"/>
+  <path d="M38 96 C34 62 70 40 108 42 C150 44 172 70 166 98 C160 124 128 132 98 130 C64 128 41 120 38 96Z" fill="var(--stone)"/>
+  <path d="M62 70 C76 56 98 52 118 55" fill="none" stroke="var(--surface)" stroke-width="5" stroke-linecap="round" opacity=".45"/>
+  ${n!=null?`<text x="102" y="104" text-anchor="middle" font-family="Gowun Batang, serif" font-size="40" font-weight="700" fill="var(--surface)">${n}</text>`:''}
+</svg>`;
+const NOTICE=['편안함','차분함','따뜻함','지루함','산만함','졸림','긴장','불안','잘 모르겠음'];
+const DEFAULT_FORM=[
+  {key:'notice',label:'무엇을 알아차렸나요?',type:'multi',options:NOTICE},
+  {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'떠오른 것을 짧게 적어 두세요'}
+];
+const W=(t,w,o)=>Object.assign({t,w},o||{});   // 시간에 비례해 늘어나는 문장
+const D=(t,d,o)=>Object.assign({t,d},o||{});   // 정해진 초
+
+const PRACTICES=[
+ {id:'still',no:1,group:'앉아서',title:'숨 사이의 쉼',sub:'아랫배에 두 손을 모으고',visual:'breath',mins:[3,5,10],def:5,
+  when:'하루를 시작할 때, 마음이 바쁠 때, 다른 수련을 하기 전에.',
+  steps:[
+   W('편안하게 앉습니다. 허리는 곧게, 어깨는 내려놓고, 눈은 감거나 앞쪽 바닥에 시선을 둡니다.',1),
+   W('두 손을 포개어 엄지 끝을 살며시 맞대고, 아랫배 앞에 둡니다. 누워 있다면 한 손을 배 위에 올려도 좋습니다.',1),
+   W('숨이 들어오고 나가는 것을 그대로 느껴 보세요.',2),
+   W('들숨에 아랫배가 손 쪽으로 부풀고, 날숨에 천천히 가라앉습니다.',2),
+   W('숨이 길면 길다고, 짧으면 짧다고 알아차립니다.',2),
+   W('이제 들숨과 날숨 사이, 아주 짧은 멈춤에 주의를 기울여 보세요.',2),
+   W('숨을 참지 않아도 됩니다. 숨은 저절로 오가고, 그 사이의 짧은 쉼은 늘 여기 있습니다.',3),
+   W('마음이 다른 곳에 가 있으면, 알아차리고 부드럽게 숨으로 돌아옵니다.',3),
+   W('천천히 세 번 숨을 쉬고, 준비가 되면 눈을 뜹니다.',1)]},
+ {id:'listen',no:2,group:'앉아서',title:'소리에 귀 기울이기',sub:'싱잉볼로 열고 닫는 듣기 수련',visual:'pebble',mins:[3,5],def:3,
+  when:'주변이 시끄러울 때, 생각이 많아 집중이 안 될 때.',
+  steps:[
+   D('편안히 앉아 눈을 감으세요. 곧 싱잉볼이 한 번 울립니다.',8),
+   W('울림이 점점 작아지는 것을 끝까지 따라가 보세요. 소리가 사라지는 순간을 알아차려 봅니다.',3,{chime:'none',chimeAfter:'long'}),
+   W('이제 방 안의 소리를 들어 봅니다. 시계, 냉장고, 옷깃이 스치는 소리.',3),
+   W('귀를 넓혀 방 밖의 소리를 들어 봅니다. 멀리 있는 소리, 가까이 있는 소리.',3),
+   W('내 몸에서 나는 소리도 들어 봅니다. 숨소리, 침 삼키는 소리.',2),
+   W('소리와 소리 사이, 그 뒤에 깔린 고요를 들어 보세요.',3),
+   D('싱잉볼이 다시 울립니다. 마지막 울림이 사라질 때까지 들어 보세요.',24,{chime:'none',chimeAfter:'long'})]},
+ {id:'thoughts',no:3,group:'앉아서',title:'생각에 이름 붙이기',sub:'떠오른 생각을 짚고 숨으로 돌아오기',visual:'breath',mins:[3,5,10],def:5,
+  when:'같은 생각이 계속 맴돌 때, 잠이 안 올 때.',
+  steps:[
+   W('편안히 앉거나 누워, 주의를 숨에 둡니다.',1),
+   W('곧 생각이 떠오를 것입니다. 생각이 떠오르는 것은 잘못이 아닙니다. 마음이 늘 하는 일입니다.',2),
+   W('생각이 떠오른 것을 알아차리면, 마음속으로 조용히 "생각"이라고 짚어 줍니다.',3),
+   W('그리고 숨으로 돌아옵니다. 들숨, 날숨.',3),
+   W('생각의 종류가 보이면 조금 더 자세히 짚어도 좋습니다. "계획", "걱정", "기억".',3),
+   W('짚어 준 생각이 어떻게 되는지 지켜봅니다. 잠시 머물기도 하고, 저절로 옅어지기도 합니다.',3),
+   W('같은 생각이 여러 번 찾아와도 괜찮습니다. 찾아올 때마다 짚어 주고, 다시 숨으로 돌아옵니다.',2),
+   W('숨을 세 번 쉬고 마칩니다.',1)],
+  form:[
+   {key:'count',label:'생각을 짚은 횟수',type:'single',options:['몇 번 안 됐어요','여러 번','셀 수 없이 많이','잘 모르겠어요']},
+   {key:'topics',label:'자주 떠오른 생각',type:'multi',options:['계획','걱정','기억','할 일','판단','비교','사람','몸']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 내일 일정이 자꾸 떠올랐다'}]},
+ {id:'feelings',no:4,group:'앉아서',title:'감정 바라보기',sub:'이름 붙이고, 몸에서 느끼고, 숨으로 품기',visual:'breath',mins:null,
+  when:'기분을 잘 모르겠을 때, 슬프거나 화가 날 때.',
+  steps:[
+   D('편안히 앉아, 몇 번 숨을 고릅니다.',15),
+   D('지금 마음에 가장 크게 자리한 감정 하나를 찾아봅니다. 뚜렷하지 않아도 괜찮습니다.',20),
+   D('그 감정에 짧게 이름을 붙여 마음속으로 말해 봅니다. "불안이 있구나." "서운함이 있구나."',20),
+   D('이 감정이 몸에서는 어떤 감각으로 나타나나요? 조임, 뜨거움, 떨림, 답답함 같은 것일 수 있습니다.',22),
+   D('들숨을 그 감각이 있는 자리로 보내듯 쉬고, 날숨에 그 자리에 조금 여유를 줍니다.',22),
+   D('밀어내지도, 붙잡지도 않습니다. 감정이 그 자리에 있도록 그냥 둡니다.',18),
+   D('감정의 세기가 조금씩 달라지는지 지켜봅니다. 파도처럼 커졌다가 작아지기도 합니다.',20),
+   D('마지막으로 숨 하나에 주의를 모으고 마칩니다.',12)],
+  form:[
+   {key:'name',label:'바라본 감정',type:'multi',options:['기쁨','편안함','슬픔','불안','화','서운함','지루함','피곤함','설렘','잘 모르겠음']},
+   {key:'sense',label:'몸에서 느낀 감각',type:'multi',options:['조임','뜨거움','차가움','떨림','무거움','답답함','텅 빔','잘 모르겠음']},
+   {key:'before',label:'처음 세기',type:'single',options:['약함','보통','강함']},
+   {key:'after',label:'마칠 때 세기',type:'single',options:['약함','보통','강함']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 가슴이 답답했는데 조금 풀렸다'}]},
+ {id:'eat',no:5,group:'생활 속에서',title:'세 번 씹기',sub:'한 조각을 처음 먹는 것처럼',visual:'pebble',mins:null,
+  when:'식사나 간식을 시작할 때. 말린 과일이나 견과 한 알이면 충분합니다.',
+  steps:[
+   D('먹을 것 한 조각을 손바닥에 올려 보세요. 처음 보는 것처럼 살펴봅니다.',15),
+   D('무게와 온도를 느껴 보세요.',12),
+   D('모양, 색, 표면의 결을 봅니다.',14),
+   D('코 가까이 가져가 냄새를 맡아 봅니다. 입 안에서 무슨 일이 일어나나요?',15),
+   D('입에 넣고, 아직 씹지 말고 혀 위에 머물게 합니다.',15),
+   D('천천히 한 번 씹습니다.',12),
+   D('두 번째로 씹습니다. 맛이 어떻게 바뀌나요?',14),
+   D('세 번째로 씹습니다.',12),
+   D('삼키는 움직임을 따라가 봅니다.',12),
+   D('눈을 뜨기 전에, 지금 어떤 느낌인지 알아차려 보세요.',14)],
+  form:[
+   {key:'notice',label:'먹고 난 지금 어떤가요?',type:'multi',options:['차분함','이완됨','행복함','힘이 남','피곤함','긴장됨','화남','잘 모르겠음']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 건포도가 이렇게 단 줄 몰랐다'}]},
+ {id:'brush',no:6,group:'생활 속에서',title:'양치질하며',sub:'2분, 입 안에서 일어나는 일',visual:'pebble',mins:null,
+  when:'아침과 저녁 양치 시간. 화면을 세면대 옆에 세워 두세요.',
+  steps:[
+   D('칫솔을 들기 전, 숨을 한 번 쉬고 시작합니다.',8),
+   D('치약을 들 때 그 무게를 느껴 보세요.',10),
+   D('치약을 짤 때 손가락 근육이 움직이는 것을 느껴 봅니다.',12),
+   D('첫 맛을 알아차립니다. 시원한가요, 단가요?',15),
+   D('칫솔이 이와 잇몸에 닿는 감각을 따라갑니다. 위, 아래, 안쪽.',25),
+   D('닦는 동안 맛이 바뀌나요?',18),
+   D('마음이 하루 계획으로 갔다면, 알아차리고 입 안으로 돌아옵니다.',17),
+   D('물을 머금고, 헹구고, 뱉는 동작을 하나씩 알아차립니다.',15)]},
+ {id:'shoes',no:7,group:'생활 속에서',title:'신발 신으며',sub:'문을 나서기 전 1분',visual:'pebble',mins:null,
+  when:'외출할 때, 운동을 시작할 때.',
+  steps:[
+   D('신발 앞에 서서 숨을 한 번 쉽니다.',7),
+   D('몸을 굽혀 첫 번째 신발에 가까워지는 것을 느껴 보세요.',9),
+   D('발이 신발 안으로 들어가는 느낌, 발가락이 꼼지락거리며 자리 잡는 느낌.',11),
+   D('끈이나 벨크로가 있다면, 손 안의 감촉과 묶는 손의 움직임을 느낍니다.',11),
+   D('같은 주의를 두 번째 신발로 가져갑니다.',12),
+   D('두 발로 서서 바닥을 느끼고, 문을 나섭니다.',8)]},
+ {id:'walk',no:8,group:'생활 속에서',title:'열 걸음 걷기',sub:'종이 울릴 때마다 한 걸음',visual:'count',mins:null,
+  when:'오래 앉아 있었을 때, 복도나 방 안에서.',
+  steps:[
+   D('선 채로 눈을 감고, 발바닥이 바닥에 닿은 것을 느껴 보세요.',12),
+   D('발이 균형을 잡으려고 만드는 작은 움직임을 느껴 봅니다.',12),
+   D('눈을 뜹니다. 이제 "띵" 소리마다 한 걸음씩, 열 걸음을 걷습니다.',9),
+   ...Array.from({length:10},(_,i)=>D(['발을 들고, 앞으로 뻗고, 내려놓습니다.','발바닥 전체로 무게가 옮겨 가는 것을 느낍니다.','뒤꿈치가 바닥을 떠나는 순간을 알아차립니다.','마음이 다른 곳에 있으면 발로 데려옵니다.','들고, 뻗고, 내려놓기.'][i%5],7,{count:i+1})),
+   D('멈춰 섭니다. 몸에서 무엇이 느껴지나요? 숨은 어떤가요?',14)]},
+ {id:'peace',no:9,group:'마음이 흔들릴 때',title:'멈추고 내쉬기',sub:'멈춤 · 세 번 내쉬기 · 발바닥 · 이름 · 한 걸음',visual:'letter',mins:null,
+  when:'화가 치밀 때, 말다툼 직전, 마음이 크게 흔들릴 때.',
+  steps:[
+   D('말과 손을 잠시 내려놓습니다. 지금은 아무것도 하지 않아도 됩니다.',10,{tag:'멈춤',letter:'1'}),
+   D('숨을 길게 세 번 내쉽니다. 내쉴 때마다 어깨가 조금씩 내려갑니다.',16,{tag:'세 번 내쉬기',letter:'2'}),
+   D('발바닥이 바닥에 닿아 있는 것을 느낍니다. 몸은 지금 여기에 있습니다.',10,{tag:'발바닥',letter:'3'}),
+   D('마음속으로 조용히 말해 봅니다. "지금 화가 올라와 있다." 이름을 붙이면 한 발 떨어져서 볼 수 있습니다.',14,{tag:'이름 붙이기',letter:'4'}),
+   D('지금 할 수 있는 가장 작은 다음 행동 하나를 떠올립니다. 서두르지 않아도 됩니다.',12,{tag:'다음 한 걸음',letter:'5'})],
+  form:[
+   {key:'path',label:'어떤 길을 고를까요?',type:'single',options:['잠시 쉬기','다시 해 보기','도움 구하기','마음을 말로 전하기','그대로 두기','다른 일로 넘어가기']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'무엇이 마음을 흔들었나요?'}]},
+ {id:'bodyscan',no:10,group:'하루를 닫으며',title:'바디스캔',sub:'발끝에서 머리끝까지 몸 살피기',visual:'breath',mins:[12,15,20],def:12,
+  when:'잠들기 전, 몸이 뻣뻣하거나 지쳤을 때. 누워서 하면 좋습니다.',
+  steps:[
+   W('바닥에 눕거나 의자에 편히 앉습니다.',1),
+   W('배에서 숨을 느끼며 잠시 쉽니다.',2),
+   W('주의를 발가락으로 옮깁니다. 엄지발가락, 새끼발가락, 발가락 사이의 공간, 발가락에 닿는 공기.',3),
+   W('발바닥의 곡선, 발뒤꿈치, 발목. 숨을 내쉴 때 발이 부드러워지게 합니다.',3),
+   W('들숨과 함께 주의를 종아리와 무릎으로 옮깁니다.',3),
+   W('허벅지와 엉덩이, 바닥에 닿은 몸의 무게를 느낍니다.',3),
+   W('배와 허리. 숨에 따라 오르내리는 배를 느껴 봅니다.',3),
+   W('가슴과 등. 심장이 뛰는 것을 느낄 수 있나요?',3),
+   W('어깨, 팔, 손, 손가락 끝까지. 날숨에 하나씩 내려놓습니다.',3),
+   W('목과 턱. 날숨에 턱의 힘을 풉니다.',2),
+   W('얼굴, 눈 주위, 이마, 머리 꼭대기.',3),
+   W('떠오르는 생각이나 느낌은 알아차리기만 하고 지나가게 둡니다.',2),
+   W('이제 몸 전체를 한꺼번에 느껴 봅니다. 있는 그대로 놓아두고 그대로 머뭅니다.',3),
+   W('손가락과 발가락을 살짝 움직이고, 천천히 눈을 뜹니다.',1)],
+  form:[
+   {key:'body',label:'몸에서 알아차린 것',type:'multi',options:['편안한 곳','뻐근한 곳','따뜻함','무거움','가벼움','졸림','잘 모르겠음']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 어깨가 생각보다 굳어 있었다'}]},
+ {id:'metta',no:11,group:'하루를 닫으며',title:'자애',sub:'"평안하기를, 행복하기를"',visual:'breath',mins:[5,10],def:5,
+  when:'나를 탓하는 마음이 들 때, 누군가와 멀어졌다고 느낄 때.',
+  steps:[
+   W('편안히 앉거나 누워 숨을 고릅니다.',1),
+   W('누군가에게 배려받고 사랑받았다고 느낀 순간을 떠올려 보세요. 친절한 말 한마디, 어깨를 토닥여 준 손길처럼 작아도 됩니다.',2),
+   W('그 순간의 장면과 소리와 느낌을 자세히 떠올리고, 그 따뜻함이 몸을 채우게 합니다.',2),
+   W('그 사람에게 마음속으로 보냅니다. "당신이 평안하기를. 당신이 행복하기를."',2),
+   W('떠오르는 두세 사람에게도 같은 마음을 보냅니다.',2),
+   W('이제 나에게 보냅니다. "내가 평안하기를. 내가 행복하기를."',2),
+   W('마음에 들지 않는 내 모습에도 친절을 보냅니다. 판단하지 말고 그냥 해 봅니다.',2),
+   W('이 말에 반응하는 나를 알아차려 보세요. 안도감, 무덤덤함, 저항, 모두 괜찮습니다.',2),
+   W('동물과 식물, 지구와 해와 달과 별에게도 사랑을 보냅니다.',2),
+   W('보낸 마음이 나에게 되돌아오는 것을 느끼며 마칩니다.',1)],
+  form:[
+   {key:'notice',label:'보내고 받으며 무엇을 느꼈나요?',type:'multi',options:['따뜻함','편안함','안도감','어색함','무덤덤함','저항감','눈물','잘 모르겠음']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'오늘 마음을 보낸 사람'}]},
+ {id:'joy',no:12,group:'하루를 닫으며',title:'오늘의 작은 기쁨',sub:'유쾌한 순간 하나를 기쁨 상자에',visual:'pebble',mins:null,
+  when:'잠들기 전, 하루가 별로였다고 느껴질 때.',
+  steps:[
+   D('숨을 몇 번 고르고, 오늘 하루를 천천히 되돌아봅니다.',15),
+   D('작은 유쾌한 순간 하나를 떠올려 보세요. 대단한 일이 아니어도 됩니다. 얼굴을 스친 바람, 따뜻한 차 한 잔, 누군가의 웃음.',22),
+   D('그때 보고, 듣고, 맛보고, 냄새 맡고, 만진 것은 무엇이었나요?',20),
+   D('그때 떠오른 생각은요? 대개 "이건 좋다"처럼 단순합니다.',18),
+   D('그때 얼굴은 어떤 표정이었나요? 지금 얼굴은 어떤가요?',16)],
+  closing:'떠올린 순간을 기쁨 상자에 담아 두세요. 기록 탭에서 다시 볼 수 있습니다.',
+  form:[
+   {key:'moment',label:'오늘의 작은 기쁨',type:'text',ph:'예: 퇴근길에 본 노을'},
+   {key:'sense',label:'보고 듣고 만진 것 (선택)',type:'text',ph:'예: 하늘이 분홍빛이었다'},
+   {key:'thought',label:'그때의 생각 (선택)',type:'text',ph:'예: 이건 좋다'},
+   {key:'feel',label:'그때의 감정',type:'multi',options:['기쁨','편안함','고마움','설렘','따뜻함','뿌듯함']}]}
+];
+const PMAP=Object.fromEntries(PRACTICES.map(p=>[p.id,p]));
+const pChosen={}; PRACTICES.forEach(p=>{ if(p.mins) pChosen[p.id]=p.def; });
+
+function planSteps(p){
+  const steps=p.steps.map(s=>Object.assign({},s));
+  if(p.mins){
+    const fixed=steps.reduce((a,s)=>a+(s.d||0),0), sumW=steps.reduce((a,s)=>a+(s.w||0),0);
+    const rest=Math.max(30,pChosen[p.id]*60-fixed);
+    steps.forEach(s=>{ if(s.w) s.d=Math.round(rest*s.w/sumW); });
+  }
+  return steps;
+}
+const totalSec=p=>planSteps(p).reduce((a,s)=>a+s.d,0);
+const fmtDur=s=>s<60?s+'초':(s%60? Math.floor(s/60)+'분 '+(s%60)+'초' : (s/60)+'분');
+
+// 홈 목록
+(function buildRows(){
+  const groups=[...new Set(PRACTICES.map(p=>p.group))];
+  const GICON={
+    '앉아서':SV('<circle cx="12" cy="5" r="2"/><path d="M12 8v4.5"/><path d="M8 10.5l4 2 4-2"/><path d="M4.5 18.5c2-3 4.6-4.5 7.5-4.5s5.5 1.5 7.5 4.5z"/>','si-moss'),
+    '생활 속에서':SV('<circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>','si-brass'),
+    '마음이 흔들릴 때':SV('<path d="M3 9.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>','si-lotus'),
+    '하루를 닫으며':SV('<path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.3 6.3 0 0 0 10 10z"/><path d="M17 4v3M15.5 5.5h3"/>','si-moss')
+  };
+  $('practiceRows').innerHTML=groups.map(g=>{const ps=PRACTICES.filter(p=>p.group===g);
+    return `<details class="sub" data-mm="g-${g}"><summary>${GICON[g]}<b>${g}</b><small>${ps.length}가지</small><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></summary><div class="rows">`+
+    ps.map(p=>`<button class="prow" data-practice="${p.id}">
+      <span class="pebble">${p.no}</span><span><h4>${p.title}</h4><p>${p.sub} · ${p.mins?p.mins.join('/')+'분':'약 '+fmtDur(Math.round(totalSec(p)/10)*10)}</p></span>${ICON.chev}</button>`).join('')+'</div></details>';}).join('');
+  document.querySelectorAll('[data-practice]').forEach(b=>b.addEventListener('click',()=>go({name:'practice',id:b.dataset.practice})));
+})();
+$('sosBtn').addEventListener('click',()=>startRun('peace'));
+function openAbout(){ $('aboutModal').hidden=false; $('aboutClose').focus(); }
+function closeAbout(){ $('aboutModal').hidden=true; $('sealBtn').focus(); }
+$('sealBtn').addEventListener('click',openAbout);
+$('aboutClose').addEventListener('click',closeAbout);
+$('aboutModal').addEventListener('click',e=>{ if(e.target.id==='aboutModal') closeAbout(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('aboutModal').hidden) closeAbout(); });
+const SUTRAS=[
+  ['반야심경','260자에 담긴 공(空)의 지혜',SV('<path d="M18.6 7.6A8 8 0 1 0 20 12.6"/>','si-moss')],
+  ['천수경','관세음보살의 자비를 기리는 독송 경전',SV('<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V5a1.5 1.5 0 0 1 3 0v6M14 11V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7-2.4 0-3.9-1.4-5.3-3.8L4.2 14.6a1.5 1.5 0 0 1 2.5-1.6L8 14.5"/>','si-lotus')],
+  ['금강경','어디에도 머물지 않는 마음',SV('<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M10 4l2 16 2-16"/>','si-brass')],
+  ['법성게','의상대사가 210자로 노래한 화엄의 세계',SV('<rect x="3.5" y="3.5" width="17" height="17" rx="1"/><path d="M7 7h10v10H7v-6.5h6.5V14H10"/>','si-seal')],
+  ['사찰의 주련','법당 기둥에 걸린 글귀 읽기',SV('<path d="M3 4h18M5 4l-1 2M19 4l1 2"/><path d="M7 6v15M17 6v15"/><rect x="10" y="7" width="4" height="11" rx=".5"/><path d="M12 9v1.5M12 12.5V14"/>','si-moss')]];
+$('sutraRows').innerHTML=SUTRAS.map(([t,d,ic])=>`<button class="prow srow" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">준비 중</span></button>`).join('');
+document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',()=>toast(b.dataset.sutra+(((b.dataset.sutra.slice(-1).charCodeAt(0)-0xAC00)%28)?'은':'는')+' 준비 중입니다.')));
+// 펼침 상태 기억
+// 메뉴는 늘 접힌 채로 시작하고, 하나를 펼치면 같은 층의 다른 메뉴는 접힘
+document.querySelectorAll('.mm,.sub').forEach(d=>{
+  d.open=false;
+  d.addEventListener('toggle',()=>{ if(!d.open) return;
+    d.parentElement.querySelectorAll(':scope>details').forEach(o=>{ if(o!==d) o.open=false; }); });
+});
+
+// 소개 화면
+function renderPractice(id){
+  const p=PMAP[id];
+  $('prArt').innerHTML=PEBBLE(p.no);
+  $('prGroup').textContent=p.group; $('prTitle').textContent=p.title; $('prSub').textContent=p.sub; $('prWhen').textContent=p.when;
+  $('prTimeBox').hidden=!p.mins;
+  if(p.mins){
+    $('prChips').innerHTML=p.mins.map(m=>`<button class="chip" data-m="${m}" aria-pressed="${pChosen[id]===m}">${m}분</button>`).join('');
+    $('prChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{pChosen[id]=+c.dataset.m;renderPractice(id)}));
+  }
+  const st=planSteps(p);
+  $('prMeta').innerHTML=`<span>${st.length}개 문장</span><span>약 ${fmtDur(Math.round(totalSec(p)/10)*10)}</span><span>${settings.chime?'문장이 바뀔 때 종이 울립니다':'안내 종소리 꺼짐'}</span><span>${hasRec(p)?'녹음된 목소리로 안내합니다 · 눈을 감아도 됩니다':voiceOn()?'기기 음성으로 안내합니다 · 눈을 감아도 됩니다':'음성 안내 꺼짐 (설정에서 켤 수 있습니다)'}</span>`;
+  $('prFlow').innerHTML=(p.id==='walk'?p.steps.filter(s=>!s.count||s.count===1).map(s=>s.count?{t:'열 걸음 · 종소리마다 한 걸음씩'}:s):p.steps).map(s=>`<li>${esc(s.t)}</li>`).join('');
+}
+$('prStart').addEventListener('click',()=>startRun(route.id));
+
+// 안내 종
+let pctx=null;
+/* 소리 잠금 풀기
+   - 휴대폰 브라우저는 화면을 누른 그 순간에 만든 소리만 허락함 → 누를 때마다 오디오와 음성을 깨워 둠
+   - 아이폰은 무음 스위치가 켜져 있으면 합성음이 꺼짐 → '재생' 모드로 바꾸고, 들리지 않는 오디오를 함께 틀어 둠 */
+let silentEl=null, ttsUnlocked=false;
+function silentWav(){
+  const n=4000, b=new Uint8Array(44+n), v=new DataView(b.buffer), w=(o,t)=>{for(let i=0;i<t.length;i++)b[o+i]=t.charCodeAt(i)};
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);
+  let str='';b.forEach(x=>str+=String.fromCharCode(x));return 'data:audio/wav;base64,'+btoa(str);
+}
+function keepAlive(on){
+  try{
+    if(on){ if(!silentEl){ silentEl=new Audio(silentWav()); silentEl.loop=true; silentEl.setAttribute('playsinline',''); } silentEl.play().catch(()=>{}); }
+    else if(silentEl && !runState && !(ctx&&!done)) silentEl.pause();
+  }catch(e){}
+}
+function unlockAudio(){
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+  try{
+    if(!pctx||pctx.state==='closed') pctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(pctx.state!=='running') pctx.resume();
+    if(ctx && ctx.state==='suspended' && !paused) ctx.resume();
+  }catch(e){}
+  if(hasTTS && !ttsUnlocked){ try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); ttsUnlocked=true; }catch(e){} }
+}
+document.addEventListener('pointerdown',unlockAudio,true);
+document.addEventListener('keydown',unlockAudio,true);
+function chime(kind,force){
+  if((!settings.chime&&!force)||kind==='none') return;
+  try{
+    if(!pctx||pctx.state==='closed') pctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(pctx.state==='suspended') pctx.resume();
+    const c=pctx,t=c.currentTime+.03,long=kind==='long';
+    const o0=c.createGain(); o0.gain.value=(settings.volume/100)*(long?.9:.45); o0.connect(c.destination);
+    const parts=long?[[1,.55,22,1.0],[2.76,.28,15,1.7],[5.4,.1,8]]:[[1,.55,5,1.4],[2.76,.22,3.5],[5.4,.08,1.8]];
+    const base=long?220:330;
+    parts.forEach(([r,a,dec,beat])=>{
+      (beat?[0,beat]:[0]).forEach(b=>{
+        const o=c.createOscillator(),g=c.createGain(),pk=a/(beat?2:1);
+        o.frequency.value=base*r+b;
+        g.gain.setValueAtTime(0.00001,t); g.gain.linearRampToValueAtTime(pk,t+.01);
+        g.gain.exponentialRampToValueAtTime(Math.max(pk*.003,0.00001),t+dec); g.gain.linearRampToValueAtTime(0,t+dec+.4);
+        o.connect(g).connect(o0); o.start(t); o.stop(t+dec+.5);
+      });
+    });
+  }catch(e){}
+}
+
+// 음성 안내 (기기의 한국어 음성)
+const hasTTS='speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+function koVoices(){ try{ return speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang)); }catch(e){ return []; } }
+function voiceOn(){ return false; }  // 기기 합성 음성은 쓰지 않음 (녹음된 목소리만)
+function voiceScore(v){
+  let sc=0;
+  if(/InJoon|인준/i.test(v.name)) sc+=60;               // 낮고 차분한 남성 목소리 (Edge)
+  if(/Natural|Neural|Online|Premium|Enhanced|Siri/i.test(v.name)) sc+=30;
+  if(/Google/i.test(v.name)) sc+=10;
+  return sc;
+}
+function bestVoice(){
+  const vs=koVoices(); if(!vs.length) return null;
+  return vs.find(x=>x.name===settings.voiceName) || vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0];
+}
+// 문장을 쉼표·마침표 단위로 나눠, 사이사이 숨을 두고 천천히 읽음
+let speakTok=0, ttsFail=false;
+function ttsProblem(){
+  if(!settings.voice) return '';
+  if(!hasTTS) return '지금 보고 계신 화면(앱 안의 미리보기 등)은 음성 안내를 지원하지 않습니다. 사파리, 크롬, 엣지 같은 브라우저에서 열면 들을 수 있습니다.';
+  if(ttsFail) return '음성 안내가 나오지 않고 있습니다. 앱 안의 미리보기라면 사파리, 크롬, 엣지 같은 브라우저에서 열어 보세요. 브라우저라면 기기의 한국어 음성(TTS)이 설치되어 있는지 확인해 주세요.';
+  return '';
+}
+function speak(text,onend){
+  const done=()=>{ if(onend){ const f=onend; onend=null; f(); } };
+  if(!voiceOn()){ done(); return; }
+  const tok=++speakTok;
+  const parts=text.replace(/["“”]/g,'').replace(/([,.?!])\s+/g,'$1\n').split('\n').map(x=>x.trim()).filter(Boolean);
+  const v=bestVoice();
+  let i=0;
+  const next=()=>{
+    if(tok!==speakTok) return;
+    if(i>=parts.length){ done(); return; }
+    const part=parts[i++];
+    try{
+      const u=new SpeechSynthesisUtterance(part.replace(/[,.]$/,''));
+      u.lang='ko-KR'; u.rate=settings.rate; u.pitch=settings.pitch; u.volume=Math.min(1,settings.volume/100*.9+.1);
+      if(v) u.voice=v;
+      const gap=/[.?!]$/.test(part)?900:450;
+      let started=false;
+      u.onstart=()=>{ started=true; if(ttsFail){ ttsFail=false; if(runState) renderRun(true); } };
+      u.onend=()=>{ started=true; setTimeout(next,gap); };
+      u.onerror=ev=>{ if(ev&&ev.error&&!/interrupted|canceled/.test(ev.error)){ ttsFail=true; if(runState) renderRun(true); } if(tok===speakTok) done(); };
+      speechSynthesis.speak(u);
+      setTimeout(()=>{ if(!started && tok===speakTok){ ttsFail=true; if(runState) renderRun(true); done(); } },4000);
+    }catch(e){ done(); }
+  };
+  next();
+}
+// 녹음된 나레이션 (audio/<수련>-<번호>.mp3). 녹음이 있는 수련은 기기 음성 대신 녹음을 재생
+const REC={still:9,listen:7,thoughts:8,feelings:8,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,metta:10,joy:5};
+const recUrl=(id,i)=>`audio/${id}-${String(i).padStart(2,'0')}.mp3`;
+const lineNo=(p,text)=>[...new Set(p.steps.map(s=>s.t))].indexOf(text)+1;
+function hasRec(p){ return !!(p&&REC[p.id]&&settings.voice); }
+const bufCache={}; let recSrc=null;
+function loadRec(url){
+  if(!bufCache[url]) bufCache[url]=fetch(url).then(r=>{ if(!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
+    .then(b=>new Promise((res,rej)=>pctx.decodeAudioData(b,res,rej)))
+    .catch(e=>{ delete bufCache[url]; throw e; });
+  return bufCache[url];
+}
+function prefetchRec(p){ if(!hasRec(p)) return; [...new Set(p.steps.map(s=>s.t))].forEach((t,i)=>loadRec(recUrl(p.id,i+1)).catch(()=>{})); }
+function playRec(url,onend){
+  const tok=speakTok;
+  loadRec(url).then(buf=>{
+    if(tok!==speakTok) return;
+    const src=pctx.createBufferSource(), g=pctx.createGain();
+    src.buffer=buf; g.gain.value=Math.min(1,settings.volume/100*.8+.1);
+    src.connect(g).connect(pctx.destination);
+    src.onended=()=>{ if(recSrc===src) recSrc=null; onend(); };
+    recSrc=src; src.start();
+  }).catch(()=>onend('fail'));
+}
+function stopRec(){ if(recSrc){ try{ recSrc.onended=null; recSrc.stop(); }catch(e){} recSrc=null; } }
+function hush(){ speakTok++; stopRec(); try{ if(hasTTS) speechSynthesis.cancel(); }catch(e){} }
+// 녹음이 끝난 뒤: 고요한 텀, 또는 (소리에 귀 기울이기) 긴 싱잉볼을 울리고 여운이 다 사라질 때까지 기다림
+function afterVoice(r,s){
+  let quiet=settings.gap;
+  if(s.chimeAfter){ chime(s.chimeAfter,true); quiet=Math.max(quiet,22); }
+  r.quietUntil=performance.now()+quiet*1000;
+}
+function speakStep(){
+  const r=runState; if(!r) return;
+  clearTimeout(r.sp); hush(); r.hold=0; r.quietUntil=0;
+  const rec=hasRec(r.p);
+  const s=r.steps[r.i];
+  r.speaking=rec||voiceOn();
+  if(!r.speaking){ if(s.chimeAfter){ const t0=r; r.sp=setTimeout(()=>{ if(runState===t0&&!t0.paused) afterVoice(t0,s); },800); } return; }
+  const tok=r.tok=(r.tok||0)+1;
+  r.sp=setTimeout(()=>{ if(runState!==r||r.tok!==tok||r.paused) return;
+    const fin=()=>{ if(runState===r&&r.tok===tok){ r.speaking=false; afterVoice(r,s); } };
+    if(rec) playRec(recUrl(r.p.id,lineNo(r.p,s.t)),err=>{ if(err==='fail'&&voiceOn()&&runState===r&&r.tok===tok) speak(s.t,fin); else fin(); });
+    else speak(s.t,fin); }, s.chime==='long'?1600:(settings.chime?650:150));
+}
+
+// 진행
+let runState=null, checkState=null, runTimer=null, runWake=null;
+async function startRun(id,replace){
+  unlockAudio(); keepAlive(true);
+  const p=PMAP[id], steps=planSteps(p);
+  prefetchRec(p);
+  runState={p,steps,i:0,left:steps[0].d,paused:false,elapsed:0,total:steps.reduce((a,s)=>a+s.d,0),last:performance.now(),count:5};
+  $('rTitle').textContent=p.title; $('rVisual').innerHTML='';
+  if(replace) replaceRoute({name:'run'}); else go({name:'run'});
+  renderCountdown();
+  clearInterval(runTimer); runTimer=setInterval(runTick,250);
+  if(settings.wake){ try{ runWake=await navigator.wakeLock?.request('screen'); }catch(e){} }
+}
+function runTick(){
+  const r=runState; if(!r) return;
+  const now=performance.now(), dt=(now-r.last)/1000; r.last=now;
+  if(r.paused) return;
+  if(r.count>0){ r.count-=dt; if(r.count<=0) beginSteps(); else renderCountdown(); return; }
+  r.left-=dt; r.elapsed+=dt;
+  if(r.left<=0){
+    // 목소리가 문장을 다 읽을 때까지 기다리고, 읽은 뒤에는 고요한 텀을 둠
+    if(r.speaking && r.hold<30){ r.hold+=dt; renderRun(false); return; }
+    if(r.quietUntil && performance.now()<r.quietUntil){ renderRun(false); return; }
+    stepTo(r.i+1,true);
+  } else renderRun(false);
+}
+function stepTo(i,auto){
+  const r=runState; if(!r) return;
+  if(i>=r.steps.length){ finishRun(); return; }
+  if(i<0) i=0;
+  r.i=i; r.left=r.steps[i].d;
+  chime(r.steps[i].chime||'short');
+  speakStep();
+  renderRun(true);
+}
+// 시작 전 5초 카운트다운
+function renderCountdown(){
+  const r=runState; if(!r) return;
+  const n=Math.max(1,Math.ceil(r.count));
+  $('rVisual').innerHTML=`<div class="vcount">${n}</div>`;
+  $('rTag').textContent='준비';
+  $('rText').textContent='곧 시작합니다. 편안히 자리를 잡고, 숨을 한 번 고르세요.';
+  $('rBar').style.width='0%';
+  $('rLeft').textContent=(r.paused?'잠시 멈춤 · ':'')+'시작까지 '+n+'초';
+  $('rPrev').disabled=true;
+  $('rHint').textContent='오른쪽 화살표를 누르면 바로 시작합니다.';
+  $('rPause').textContent=r.paused?'이어서':'일시정지';
+  $('runBox').classList.toggle('paused-run',r.paused);
+}
+function beginSteps(){
+  const r=runState; if(!r) return;
+  r.count=0; $('rVisual').innerHTML='';
+  chime(r.steps[0].chime||'short');
+  speakStep();
+  renderRun(true);
+}
+function visualFor(p,s){
+  if(p.visual==='breath') return '<div class="bcircle"></div>';
+  if(p.visual==='bubbles') return '<div class="bubbles">'+[[14,26,9,0],[30,40,11,2.5],[52,22,8,1],[68,34,12,4],[40,16,7,6],[78,20,9,3.2],[22,18,10,5.4]]
+    .map(([x,sz,d,w])=>`<span style="left:${x}%;width:${sz}px;height:${sz}px;--d:${d}s;--w:${w}s"></span>`).join('')+'</div>';
+  if(p.visual==='letter') return `<div class="vletter">${s.letter||''}</div>`;
+  if(p.visual==='count') return s.count?`<div class="vcount">${s.count}<small> / 10</small></div>`:`<div class="vpebble">${PEBBLE(null)}</div>`;
+  return `<div class="vpebble">${PEBBLE(null)}</div>`;
+}
+function renderRun(stepChanged){
+  const r=runState; if(!r) return;
+  const s=r.steps[r.i];
+  if(stepChanged){
+    const keep=r.p.visual==='breath'||r.p.visual==='bubbles';
+    if(!keep||!$('rVisual').firstChild) $('rVisual').innerHTML=visualFor(r.p,s);
+    $('rText').textContent=s.t;
+    $('rTag').textContent=s.tag||`${r.i+1} / ${r.steps.length}`;
+    $('rPrev').disabled=r.i===0;
+    $('rHint').textContent=(hasRec(r.p)?'':ttsProblem())|| ((hasRec(r.p)||voiceOn())?'목소리가 문장을 끝까지 읽은 뒤 다음 문장으로 넘어갑니다. 눈을 감고 들으셔도 됩니다.':r.p.visual==='breath'?'원이 커질 때 들이쉬고, 작아질 때 내쉬어도 좋습니다. 숨은 억지로 맞추지 않아도 됩니다.'
+      : r.i===r.steps.length-1?'이 문장이 끝나면 알아차린 것을 짧게 남깁니다.':'문장은 저절로 넘어갑니다. 화살표로 앞뒤를 오갈 수 있습니다.');
+  }
+  const done=r.steps.slice(0,r.i).reduce((a,x)=>a+x.d,0)+(s.d-Math.max(0,r.left));
+  $('rBar').style.width=Math.min(100,done/r.total*100)+'%';
+  $('rLeft').textContent=(r.paused?'잠시 멈춤 · ':'')+'남은 시간 '+fmt(r.total-done);
+  $('rPause').textContent=r.paused?'이어서':'일시정지';
+  $('runBox').classList.toggle('paused-run',r.paused);
+}
+function stopRun(){
+  setTimeout(()=>keepAlive(false),0);
+  if(runState) clearTimeout(runState.sp);
+  hush();
+  clearInterval(runTimer); runTimer=null; runState=null;
+  try{runWake?.release();}catch(e){} runWake=null;
+}
+function finishRun(){
+  const r=runState;
+  checkState={p:r.p,sec:Math.max(1,Math.round(r.elapsed)),vals:{}};
+  stopRun();
+  replaceRoute({name:'check'});
+}
+function replaceRoute(r){
+  show(r);
+  try{history.replaceState(r,'','#'+r.name)}catch(e){ fallback[fallback.length-1]=r; }
+}
+$('rPause').addEventListener('click',()=>{ const r=runState; if(!r) return; r.paused=!r.paused; r.last=performance.now();
+  if(r.count>0){ renderCountdown(); return; }
+  if(r.paused){ clearTimeout(r.sp); hush(); r.speaking=false; } else speakStep();
+  renderRun(false); });
+$('rNext').addEventListener('click',()=>{ if(!runState) return; if(runState.count>0){ beginSteps(); return; } stepTo(runState.i+1); });
+$('rPrev').addEventListener('click',()=>{ if(runState&&!(runState.count>0)) stepTo(runState.i-1); });
+
+// 마침 기록
+function renderCheck(){
+  const c=checkState, p=c.p, form=p.form||DEFAULT_FORM;
+  $('cTitle').textContent=p.title;
+  $('cClosing').textContent=p.closing||`${fmtDur(c.sec)} 동안 머물렀습니다. 무엇이 일어났든, 알아차린 것 그 자체가 마음챙김입니다.`;
+  $('v-check').insertBefore($('cFollow'),$('cHint'));
+  $('cFields').innerHTML=form.map(f=>{
+    if(f.type==='text') return `<label class="field" for="cf-${f.key}"><span>${f.label}</span><input class="tinput" id="cf-${f.key}" data-key="${f.key}" maxlength="120" placeholder="${esc(f.ph||'')}" value="${esc(c.vals[f.key]||'')}"></label>`;
+    const sel=c.vals[f.key]||(f.type==='multi'?[]:'');
+    return `<div class="field"><span>${f.label}</span><div class="chips" role="group" aria-label="${esc(f.label)}">`+
+      f.options.map(o=>`<button class="chip" data-key="${f.key}" data-type="${f.type}" data-val="${esc(o)}" aria-pressed="${f.type==='multi'?sel.includes(o):sel===o}">${esc(o)}</button>`).join('')+'</div></div>';
+  }).join('');
+  $('cFields').querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.key,v=b.dataset.val;
+    if(b.dataset.type==='multi'){ const a=c.vals[k]||[]; c.vals[k]=a.includes(v)?a.filter(x=>x!==v):[...a,v]; }
+    else c.vals[k]=c.vals[k]===v?'':v;
+    renderCheck();
+  }));
+  $('cFields').querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{c.vals[i.dataset.key]=i.value.trim()}));
+  const FOLLOW={
+    '잠시 쉬기':['자리를 잠시 떠나도 괜찮습니다. 숨 사이의 쉼 5분으로 쉬어 갈 수 있습니다.','still','숨 사이의 쉼 5분 시작'],
+    '다시 해 보기':['한 번에 하나씩, 천천히 다시 해 봅니다. 시작하기 전에 숨을 한 번 길게 내쉬세요.'],
+    '도움 구하기':['누구에게 도움을 구할지 아래 메모에 적어 두세요. 도움을 구하는 것도 용기입니다.'],
+    '마음을 말로 전하기':['"나"로 시작해 말해 보세요. "나는 ___할 때 ___을 느꼈어요. 나에게는 ___이 필요해요." 아래 메모에 먼저 적어 보아도 좋습니다.'],
+    '그대로 두기':['바꿀 수 없는 것은 있는 그대로 두는 것도 지혜로운 선택입니다. 그대로 두기가 어렵다면, 어렵다는 것을 알아차립니다.'],
+    '다른 일로 넘어가기':['몸을 움직이면 마음도 함께 옮겨 갑니다. 열 걸음을 걸으며 넘어가 볼 수 있습니다.','walk','열 걸음 걷기 시작']
+  };
+  const f=p.id==='peace'&&c.vals.path?FOLLOW[c.vals.path]:null;
+  $('cFollow').hidden=!f;
+  if(f){ const first=$('cFields').querySelector('.field'); if(first) first.after($('cFollow')); }
+  if(f){ $('cFollowText').textContent=f[0]; $('cFollowBtn').hidden=!f[1];
+    if(f[1]){ $('cFollowBtn').textContent=f[2]; $('cFollowBtn').dataset.next=f[1]; } }
+  const all=Object.values(c.vals).flat();
+  $('cHint').hidden=!(all.includes('지루함')||all.includes('산만함'));
+}
+function noteSummary(n){
+  return Object.entries(n).map(([k,v])=>Array.isArray(v)?v.join(', '):v).filter(Boolean).join(' · ');
+}
+function closeCheck(saveIt,nextId){
+  const c=checkState; if(!c) return;
+  const note={}; Object.entries(c.vals).forEach(([k,v])=>{ if(Array.isArray(v)?v.length:v) note[k]=v; });
+  sessions.unshift({t:Date.now(),id:c.p.id,sec:c.sec,...(saveIt&&Object.keys(note).length?{note}:{})});
+  sessions=sessions.slice(0,500); save('sessions',sessions);
+  checkState=null;
+  if(nextId){ if(PMAP[nextId].mins) pChosen[nextId]=PMAP[nextId].def; startRun(nextId,true); return; }
+  tab('home');
+  toast(saveIt&&c.p.id==='joy'&&note.moment?'기쁨 상자에 담았습니다.':`${c.p.title} ${fmtDur(c.sec)}을 기록했습니다.`);
+}
+$('cSave').addEventListener('click',()=>closeCheck(true));
+$('cSkip').addEventListener('click',()=>closeCheck(false));
+$('cFollowBtn').addEventListener('click',e=>closeCheck(true,e.currentTarget.dataset.next));
+let toastT=null;
+function toast(msg){ $('toast').textContent=msg; $('toast').hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>$('toast').hidden=true,2600); }
+
+/* ---------- 글자 크기 ---------- */
+function applyFs(){ document.body.style.zoom=settings.fs||1; }
+applyFs();
+function renderFs(){
+  $('fsChips').innerHTML=[[1,'보통'],[1.12,'크게'],[1.25,'아주 크게']].map(([v,l])=>`<button class="chip" data-fs="${v}" aria-pressed="${settings.fs===v}">${l}</button>`).join('');
+  $('fsChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{ settings.fs=+c.dataset.fs; save('settings',settings); applyFs(); renderFs(); }));
+}
+
+/* ---------- 카카오톡 등 앱 안 브라우저 / 설치 안내 ---------- */
+const UA=navigator.userAgent||'';
+const isIOS=/iPhone|iPad|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isAndroid=/Android/i.test(UA);
+const inKakao=/KAKAOTALK/i.test(UA);
+const inOtherApp=/NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps/i.test(UA);
+const isStandalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isHosted=window.top===window.self && !/claude\.ai|claudeusercontent|anthropic/.test(location.hostname) && location.protocol==='https:';
+const SHARE_ICO='<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span>';
+const DOTS_ICO='<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span>';
+function openExternal(){
+  const url=location.href;
+  if(inKakao){ location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url); return; }
+  if(isAndroid){ location.href='intent://'+location.host+location.pathname+location.search+'#Intent;scheme=https;package=com.android.chrome;end'; }
+}
+function setupGuides(){
+  if(!isHosted) return;
+  if(inKakao||inOtherApp){
+    $('inappGuide').hidden=false;
+    if(!inKakao) $('inappGuide').querySelector('.guide-title').textContent='다른 앱 안에서 열려 있어요';
+    $('inappSteps').innerHTML=isIOS
+      ? `버튼이 안 되면: 화면 오른쪽 아래 ${DOTS_ICO} 를 누르고 <b>'다른 브라우저로 열기'</b> 또는 <b>'Safari로 열기'</b>를 누르세요.`
+      : `버튼이 안 되면: 화면 오른쪽 위 ${DOTS_ICO} 를 누르고 <b>'다른 브라우저로 열기'</b>를 누르세요.`;
+    // 안드로이드 카카오톡은 처음 한 번 자동으로 크롬으로 넘김
+    try{ if(inKakao&&isAndroid&&!sessionStorage.getItem('gyo:ext')){ sessionStorage.setItem('gyo:ext','1'); openExternal(); } }catch(e){}
+    return;
+  }
+  if(isStandalone) return;
+  try{ if(localStorage.getItem('gyo:guideNever')||sessionStorage.getItem('gyo:guideLater')) return; }catch(e){}
+  showInstallGuide();
+}
+function showInstallGuide(){
+  $('installSteps').innerHTML=isIOS
+    ? `<ol><li><span class="n">1</span><span>화면 아래쪽 가운데 ${SHARE_ICO} 버튼을 누르세요.</span></li>
+           <li><span class="n">2</span><span>아래로 내려서 <b>'홈 화면에 추가'</b>를 누르고, 오른쪽 위 <b>'추가'</b>를 누르세요.</span></li></ol>`
+    : installEvt ? `<p>아래 <b>'설치하기'</b>를 누르고, 나오는 창에서 한 번 더 <b>'설치'</b>를 누르세요.</p>`
+    : `<ol><li><span class="n">1</span><span>화면 오른쪽 위 ${DOTS_ICO} 를 누르세요.</span></li>
+           <li><span class="n">2</span><span><b>'홈 화면에 추가'</b> 또는 <b>'앱 설치'</b>를 누르세요.</span></li></ol>`;
+  $('guideInstall').hidden=!installEvt;
+  $('installGuide').hidden=false;
+}
+$('openExternal').addEventListener('click',openExternal);
+$('guideLater').addEventListener('click',()=>{ $('installGuide').hidden=true; try{sessionStorage.setItem('gyo:guideLater','1')}catch(e){} });
+$('guideNever').addEventListener('click',()=>{ $('installGuide').hidden=true; try{localStorage.setItem('gyo:guideNever','1')}catch(e){} });
+$('guideInstall').addEventListener('click',()=>$('installBtn').click());
+
+/* ---------- 홈 화면 설치 (웹앱으로 배포했을 때) ---------- */
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; $('installBox').hidden=false; if(!$('installGuide').hidden) showInstallGuide(); });
+window.addEventListener('appinstalled',()=>{ installEvt=null; $('installBox').hidden=true; $('installGuide').hidden=true; toast('홈 화면에 설치했습니다.'); });
+$('installBtn').addEventListener('click',async()=>{ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; $('installBox').hidden=true; });
+
+/* ---------- 시작 ---------- */
+setupGuides();
+(function init(){
+  const h=(location.hash||'').slice(1);
+  let r={name:'home'};
+  if(TABS.includes(h)) r={name:h}; else if(SOUNDS[h]) r={name:'sound',id:h}; else if(PMAP[h]) r={name:'practice',id:h};
+  try{history.replaceState({name:'home'},'','#home')}catch(e){histOK=false}
+  show({name:'home'});
+  if(r.name==='sound'||r.name==='practice') go(r); else if(r.name!=='home') tab(r.name);
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
