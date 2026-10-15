@@ -121,11 +121,23 @@ button{font:inherit;color:inherit}
 .btn.small{width:auto;padding:10px 16px;font-size:14.5px}
 
 /* 재생 */
-.player{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
-.ring{position:relative;width:min(300px,76vw);aspect-ratio:1;max-width:100%}
+.player{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+#v-run,#v-player{gap:8px;padding-top:4px}
+.lotus-svg{width:100%;height:auto;overflow:visible}
+.lotus-svg .lc{fill:var(--moss-soft);stroke:var(--moss);stroke-width:1.6}
+.lotus-svg .lh{fill:none;stroke:var(--moss);stroke-width:1;opacity:.3}
+.lotus-svg .pb{fill:var(--lotus);opacity:.5}
+.lotus-svg .pf{fill:var(--lotus);opacity:.88}
+.lotus-svg .pc{fill:var(--lotus)}
+.lotus-svg .wl{fill:var(--moss);opacity:.22}
+.rtag.big{font-family:var(--serif);font-size:30px;color:var(--moss);letter-spacing:0}
+@media (max-height:760px){ #rHint,#pHint{display:none} .topbar{padding-block:4px} }
+@media (max-height:640px){ .rtext{min-height:4.8em;font-size:17px} }
+.ring{position:relative;width:min(300px,76vw,40vh);aspect-ratio:1;max-width:100%}
 .ring svg.track{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
 .ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.ring .center>div:first-child{width:46%}
+.ring .center>div:first-child{width:84%}
+.ptime{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:-4px}
 .ring .center svg{width:100%;height:auto}
 .time{font-family:var(--serif);font-size:clamp(34px,9vw,46px);font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1.2}
 .hint{color:var(--muted);font-size:14px;max-width:34ch}
@@ -277,8 +289,8 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
 .big-pebble svg{width:100%;height:auto}
 
 /* 안내 진행 */
-.run{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
-.visual{width:min(220px,58vw);aspect-ratio:1;max-width:100%;display:grid;place-items:center;position:relative}
+.run{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.visual{width:min(240px,62vw,31vh);aspect-ratio:1;max-width:100%;display:grid;place-items:center;position:relative}
 .bcircle{width:72%;aspect-ratio:1;border-radius:50%;background:var(--moss-soft);border:2px solid var(--moss);animation:bre 10s ease-in-out infinite}
 @keyframes bre{0%{transform:scale(.62)}40%{transform:scale(1)}100%{transform:scale(.62)}}
 .bubbles{position:absolute;inset:0;overflow:hidden;border-radius:50%}
@@ -294,7 +306,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
 .paused-run .bcircle,.paused-run .bubbles span,.paused-run .vpebble{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.bcircle,.bubbles span,.vpebble{animation:none}.bubbles span{opacity:.5;bottom:40%}}
 .rtag{font-size:13px;color:var(--moss);letter-spacing:.06em}
-.rtext{font-family:var(--serif);font-size:clamp(19px,5vw,23px);line-height:1.65;max-width:30ch;min-height:6.6em;text-wrap:pretty;margin:0}
+.rtext{font-family:var(--serif);font-size:clamp(18px,4.8vw,22px);line-height:1.6;max-width:30ch;min-height:5.2em;text-wrap:pretty;margin:0}
 .rbar{width:100%;max-width:340px;height:4px;background:var(--line);border-radius:999px;overflow:hidden}
 .rbar i{display:block;height:100%;background:var(--moss);transition:width .25s linear}
 .rcontrols{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;width:100%;max-width:340px;align-items:center}
@@ -519,11 +531,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
           <circle id="prog" cx="50" cy="50" r="46" fill="none" stroke="var(--moss)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="0"/>
         </svg>
         <div class="center">
-          <div class="breath" id="pArt"></div>
-          <div class="time" id="pTime" aria-live="off">00:00</div>
-          <span class="label" id="pState">남은 시간</span>
+          <div id="pArt"></div>
         </div>
       </div>
+      <div class="ptime"><div class="time" id="pTime" aria-live="off">00:00</div><span class="label" id="pState">남은 시간</span></div>
       <p class="hint" id="pHint"></p>
       <div class="controls" id="pControls">
         <button class="btn" id="pauseBtn">일시정지</button>
@@ -832,6 +843,7 @@ $('sdInput').addEventListener('input',()=>{ chosen[route.id]=clampMin($('sdInput
 $('sdStart').addEventListener('click',()=>startSession(route.id));
 
 /* ---------- 소리 엔진 ---------- */
+let strikeTimes=[];
 let ctx=null, master, out, _noise=null, timerId, schedId, wake=null;
 let cur=null, total=0, remaining=0, prepLeft=0, paused=false, done=false, lastTick=0, startAt=0, nextStrike=0, nextThunder=0;
 
@@ -906,9 +918,10 @@ async function startSession(id){
   startAt=ctx.currentTime+prepLeft+.3;
   master=ctx.createGain(); master.gain.setValueAtTime(0,ctx.currentTime); master.gain.setValueAtTime(0,startAt);
   master.gain.linearRampToValueAtTime(1,startAt+(id==='lotus'?4:.05)); master.connect(out);
+  strikeTimes=[];
   if(id==='lotus'){ startRain(startAt); nextThunder=startAt+15; } else nextStrike=startAt;
   $('pTitle').textContent=s.name+' · '+fmtPreset(chosen[id]);
-  $('pArt').innerHTML=ART[id]; $('pHint').textContent=prepLeft?'자리를 잡고 숨을 고르세요.':s.hint;
+  $('pArt').innerHTML=''; $('pHint').textContent=prepLeft?'자리를 잡고 숨을 고르세요.':s.hint;
   $('pControls').hidden=false; $('pDone').hidden=true; $('vol').value=sessVol(id);
   setPauseUI();
   if(route.name==='player') show(route); else go({name:'player'});
@@ -925,7 +938,7 @@ function schedule(){
     return;
   }
   while(nextStrike<now+.5 && (nextStrike-startAt)<total-0.5){
-    cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); nextStrike+=cur.gap;
+    cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); strikeTimes.push(nextStrike); nextStrike+=cur.gap;
   }
 }
 function tick(){
@@ -1456,7 +1469,7 @@ function hush(){ speakTok++; stopRec(); try{ if(hasTTS) speechSynthesis.cancel()
 // 녹음이 끝난 뒤: 고요한 텀, 또는 (소리에 귀 기울이기) 긴 싱잉볼을 울리고 여운이 다 사라질 때까지 기다림
 function afterVoice(r,s){
   let quiet=settings.gap;
-  if(s.chimeAfter){ chime(s.chimeAfter,true); quiet=Math.max(quiet,22); }
+  if(s.chimeAfter){ chime(s.chimeAfter,true); lotusPulse=performance.now(); quiet=Math.max(quiet,22); }
   r.quietUntil=performance.now()+quiet*1000;
 }
 function speakStep(){
@@ -1508,12 +1521,65 @@ function stepTo(i,auto){
   speakStep();
   renderRun(true);
 }
+// ---- 숨 따라 피는 연꽃 (모든 명상 공통) ----
+function lotusSVG(){
+  const petal='M0 0 C-11 -10 -12 -38 0 -54 C12 -38 11 -10 0 0Z';
+  const back=[-62,-32,32,62].map(a=>`<path class="pt pb" data-a="${a}" data-k="1" d="${petal}"/>`).join('');
+  const front=[-46,-16,16,46].map(a=>`<path class="pt pf" data-a="${a}" data-k=".86" d="${petal}"/>`).join('');
+  return `<svg class="lotus-svg" viewBox="-100 -100 200 200" aria-hidden="true">
+    <circle class="lh" r="60"/><circle class="lc" r="40"/>
+    <g transform="translate(0 26)"><ellipse class="wl" cx="0" cy="4" rx="34" ry="4"/>${back}${front}<path class="pt pc" data-a="0" data-k=".92" d="${petal}"/></g></svg>`;
+}
+function setLotus(box,v){
+  if(!box) return;
+  if(!box.firstElementChild||!box.firstElementChild.classList.contains('lotus-svg')) box.innerHTML=lotusSVG();
+  v=Math.max(0,Math.min(1,v));
+  const svg=box.firstElementChild, r=34+52*v;
+  svg.querySelector('.lc').setAttribute('r',r.toFixed(1));
+  const h=svg.querySelector('.lh'); h.setAttribute('r',(r+7+6*v).toFixed(1)); h.style.opacity=(.08+.3*v).toFixed(2);
+  svg.querySelectorAll('.pt').forEach(el=>{
+    const a=+el.dataset.a*(0.14+0.86*v), k=+el.dataset.k*(0.78+0.22*v);
+    el.setAttribute('transform',`rotate(${a.toFixed(1)}) scale(${k.toFixed(3)})`);
+  });
+}
+const easeIO=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+function breathV(t,period){ // 들숨 40% · 날숨 60%
+  const p=(t%period)/period; return p<.4? easeIO(p/.4) : 1-easeIO((p-.4)/.6);
+}
+function bellV(dt,tau){ // 소리가 울리면 피었다가 여운을 따라 오므라듦
+  if(dt<0) return .05; if(dt<.7) return .05+.95*easeIO(dt/.7);
+  return .05+.95*Math.exp(-(dt-.7)/tau);
+}
+let lotusPulse=null, lotusLast=performance.now();
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function lotusFrame(){
+  requestAnimationFrame(lotusFrame);
+  const now=performance.now(), dt=Math.min(.1,(now-lotusLast)/1000); lotusLast=now;
+  if(document.hidden) return;
+  if(route.name==='run'&&runState){
+    const r=runState; if(!r.paused) r.bt=(r.bt||0)+dt;
+    let v;
+    if(r.count>0) v=.06+.1*(1-r.count/5);
+    else if(lotusPulse&&now-lotusPulse<24000) v=bellV((now-lotusPulse)/1000,8);
+    else v=breathV(r.bt,10);
+    setLotus($('rVisual'),reduceMotion?.7:v);
+  } else if(route.name==='player'&&cur){
+    let v=.35;
+    if(ctx&&!done){
+      const t=ctx.currentTime;
+      if(cur.id==='lotus') v= t<startAt? .06 : breathV(t-startAt,12);
+      else { const past=strikeTimes.filter(x=>x<=t); v= past.length? bellV(t-past[past.length-1], cur.id==='bowl'?9:10) : .06; }
+    }
+    setLotus($('pArt'),reduceMotion?.7:v);
+  }
+}
+requestAnimationFrame(lotusFrame);
+
 // 시작 전 5초 카운트다운
 function renderCountdown(){
   const r=runState; if(!r) return;
   const n=Math.max(1,Math.ceil(r.count));
-  $('rVisual').innerHTML=`<div class="vcount">${n}</div>`;
-  $('rTag').textContent='준비';
+  $('rTag').textContent=n; $('rTag').classList.add('big');
   $('rText').textContent='곧 시작합니다. 편안히 자리를 잡고, 숨을 한 번 고르세요.';
   $('rBar').style.width='0%';
   $('rLeft').textContent=(r.paused?'잠시 멈춤 · ':'')+'시작까지 '+n+'초';
@@ -1524,7 +1590,7 @@ function renderCountdown(){
 }
 function beginSteps(){
   const r=runState; if(!r) return;
-  r.count=0; $('rVisual').innerHTML='';
+  r.count=0; $('rTag').classList.remove('big');
   chime(r.steps[0].chime||'short');
   speakStep();
   renderRun(true);
@@ -1541,12 +1607,11 @@ function renderRun(stepChanged){
   const r=runState; if(!r) return;
   const s=r.steps[r.i];
   if(stepChanged){
-    const keep=r.p.visual==='breath'||r.p.visual==='bubbles';
-    if(!keep||!$('rVisual').firstChild) $('rVisual').innerHTML=visualFor(r.p,s);
     $('rText').textContent=s.t;
-    $('rTag').textContent=s.tag||`${r.i+1} / ${r.steps.length}`;
+    $('rTag').classList.remove('big');
+    $('rTag').textContent=s.tag||(s.count?`걸음 ${s.count} / 10`:`${r.i+1} / ${r.steps.length}`);
     $('rPrev').disabled=r.i===0;
-    $('rHint').textContent=(hasRec(r.p)?'':ttsProblem())|| ((hasRec(r.p)||voiceOn())?'목소리가 문장을 끝까지 읽은 뒤 다음 문장으로 넘어갑니다. 눈을 감고 들으셔도 됩니다.':r.p.visual==='breath'?'원이 커질 때 들이쉬고, 작아질 때 내쉬어도 좋습니다. 숨은 억지로 맞추지 않아도 됩니다.'
+    $('rHint').textContent=(hasRec(r.p)?'':ttsProblem())|| ((hasRec(r.p)||voiceOn())?'연꽃이 피어날 때 들이쉬고, 오므라들 때 내쉬어도 좋습니다. 눈을 감고 들으셔도 됩니다.':false?''
       : r.i===r.steps.length-1?'이 문장이 끝나면 알아차린 것을 짧게 남깁니다.':'문장은 저절로 넘어갑니다. 화살표로 앞뒤를 오갈 수 있습니다.');
   }
   const done=r.steps.slice(0,r.i).reduce((a,x)=>a+x.d,0)+(s.d-Math.max(0,r.left));
