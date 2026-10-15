@@ -739,7 +739,8 @@ const $=id=>document.getElementById(id);
 /* ---------- 저장 ---------- */
 function load(k,d){try{const v=localStorage.getItem('gyo:'+k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem('gyo:'+k,JSON.stringify(v))}catch(e){}}
-const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1.12},load('settings',{}));
+const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1},load('settings',{}));
+if(!settings.sv3){ if(settings.fs===1.12) settings.fs=1; settings.sv3=1; save('settings',settings); }
 if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(settings.gap===3) settings.gap=5; settings.sv2=1; save('settings',settings); }
 const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
 let sessions=load('sessions',[]);   // {t, id, sec}
@@ -1527,8 +1528,7 @@ function lotusSVG(){
   const back=[-62,-32,32,62].map(a=>`<path class="pt pb" data-a="${a}" data-k="1" d="${petal}"/>`).join('');
   const front=[-46,-16,16,46].map(a=>`<path class="pt pf" data-a="${a}" data-k=".86" d="${petal}"/>`).join('');
   return `<svg class="lotus-svg" viewBox="-100 -100 200 200" aria-hidden="true">
-    <circle class="lh" r="60"/><circle class="lc" r="40"/>
-    <g transform="translate(0 26)"><ellipse class="wl" cx="0" cy="4" rx="34" ry="4"/>${back}${front}<path class="pt pc" data-a="0" data-k=".92" d="${petal}"/></g></svg>`;
+    <circle class="lh" r="60"/><circle class="lc" r="40"/></svg>`;
 }
 function setLotus(box,v){
   if(!box) return;
@@ -1611,7 +1611,7 @@ function renderRun(stepChanged){
     $('rTag').classList.remove('big');
     $('rTag').textContent=s.tag||(s.count?`걸음 ${s.count} / 10`:`${r.i+1} / ${r.steps.length}`);
     $('rPrev').disabled=r.i===0;
-    $('rHint').textContent=(hasRec(r.p)?'':ttsProblem())|| ((hasRec(r.p)||voiceOn())?'연꽃이 피어날 때 들이쉬고, 오므라들 때 내쉬어도 좋습니다. 눈을 감고 들으셔도 됩니다.':false?''
+    $('rHint').textContent=(hasRec(r.p)?'':ttsProblem())|| ((hasRec(r.p)||voiceOn())?'원이 커질 때 들이쉬고, 작아질 때 내쉬어도 좋습니다. 눈을 감고 들으셔도 됩니다.':false?''
       : r.i===r.steps.length-1?'이 문장이 끝나면 알아차린 것을 짧게 남깁니다.':'문장은 저절로 넘어갑니다. 화살표로 앞뒤를 오갈 수 있습니다.');
   }
   const done=r.steps.slice(0,r.i).reduce((a,x)=>a+x.d,0)+(s.d-Math.max(0,r.left));
