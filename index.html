@@ -22,14 +22,14 @@ img{max-width:100%}
 </style>
 <title>무우수</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: 휴대폰 앱 구조. 아래 탭(홈·기록·설정) + 들어가는 화면(소리 고르기·재생)은 위 왼쪽 되돌아가기. 재생 중엔 아래 작은 재생바 */
 :root{
   --bg:#eef0ea; --surface:#f8f9f5; --ink:#2a332d; --muted:#566159; --line:#d6dbd1;
   --moss:#4f6b57; --moss-soft:#dfe7dc; --lotus:#c9798b; --brass:#b48a3c; --stone:#a9ae9f; --seal:#b2483a;
-  --serif:"Gowun Batang","Noto Serif KR",Georgia,serif;
-  --sans:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --serif:"Hahmlet","Noto Serif KR","Nanum Myeongjo",serif;
+  --sans:"Hahmlet","Noto Serif KR","Nanum Myeongjo",serif;
   --nav-h:64px; --mini-h:64px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -1103,7 +1103,7 @@ const PEBBLE=n=>`<svg viewBox="0 0 200 150" aria-hidden="true">
   <ellipse cx="100" cy="132" rx="70" ry="8" fill="var(--line)"/>
   <path d="M38 96 C34 62 70 40 108 42 C150 44 172 70 166 98 C160 124 128 132 98 130 C64 128 41 120 38 96Z" fill="var(--stone)"/>
   <path d="M62 70 C76 56 98 52 118 55" fill="none" stroke="var(--surface)" stroke-width="5" stroke-linecap="round" opacity=".45"/>
-  ${n!=null?`<text x="102" y="104" text-anchor="middle" font-family="Gowun Batang, serif" font-size="40" font-weight="700" fill="var(--surface)">${n}</text>`:''}
+  ${n!=null?`<text x="102" y="104" text-anchor="middle" font-family="Hahmlet, serif" font-size="40" font-weight="700" fill="var(--surface)">${n}</text>`:''}
 </svg>`;
 const NOTICE=['편안함','차분함','따뜻함','지루함','산만함','졸림','긴장','불안','잘 모르겠음'];
 const DEFAULT_FORM=[
