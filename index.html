@@ -58,7 +58,6 @@ body.no-nav.has-mini{padding-bottom:calc(var(--mini-h) + 32px + env(safe-area-in
   #v-home>.brandrow{grid-column:1 / -1}
   #v-home>.menu{grid-row:2 / span 12}
   .tabbar-in{max-width:640px}
-  .hello h1{font-size:40px}
 }
 @media (min-width:1200px){ .app{max-width:1140px} }
 .view{display:flex;flex-direction:column;gap:24px;padding-top:20px}
@@ -108,6 +107,8 @@ button{font:inherit;color:inherit}
 /* 소리 화면 */
 .hero-art{aspect-ratio:4/3;max-width:100%;border-radius:20px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center}
 .hero-art svg{width:70%;height:auto}
+.hero-art>.lotus-svg{width:62%;height:auto}
+.thumb .lotus-svg{width:80%}
 .desc{display:flex;flex-direction:column;gap:6px}
 .desc h1{font-size:28px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -821,7 +822,7 @@ $('quick').addEventListener('click',()=>{ chosen[last.id]=last.min; startSession
 function renderSound(id){
   const s=SOUNDS[id];
   $('sdTitle').textContent=s.name; $('sdName').textContent=s.name; $('sdDesc').textContent=s.desc;
-  $('sdArt').innerHTML=ART[id];
+  $('sdArt').innerHTML='';
   const isPreset=s.presets.includes(chosen[id]);
   $('sdChips').innerHTML=s.presets.map(m=>`<button class="chip" data-m="${m}" aria-pressed="${isPreset&&m===chosen[id]}">${fmtPreset(m)}</button>`).join('')
     +`<button class="chip" data-m="custom" aria-pressed="${!isPreset}">직접입력</button>`;
@@ -1007,7 +1008,7 @@ function updateMini(){
   const show=!!ctx && !done && route.name!=='player';
   $('mini').hidden=!show; document.body.classList.toggle('has-mini',show);
   if(!show) return;
-  $('miniArt').innerHTML=ART[cur.id]; $('miniName').textContent=cur.name;
+  if(!$('miniArt').firstElementChild) $('miniArt').innerHTML=lotusSVG(); $('miniName').textContent=cur.name;
   $('miniTime').textContent=(paused?'멈춤 · ':prepLeft>0?'준비 · ':'남은 ')+fmt(prepLeft>0?prepLeft:remaining);
 }
 $('miniOpen').addEventListener('click',()=>go({name:'player'}));
@@ -1329,7 +1330,7 @@ document.querySelectorAll('.mm,.sub').forEach(d=>{
 // 소개 화면
 function renderPractice(id){
   const p=PMAP[id];
-  $('prArt').innerHTML=PEBBLE(p.no);
+  $('prArt').innerHTML='';
   $('prGroup').textContent=p.group; $('prTitle').textContent=p.title; $('prSub').textContent=p.sub; $('prWhen').textContent=p.when;
   $('prTimeBox').hidden=!p.mins;
   if(p.mins){
@@ -1563,6 +1564,10 @@ function lotusFrame(){
     else if(lotusPulse&&now-lotusPulse<24000) v=bellV((now-lotusPulse)/1000,8);
     else v=breathV(r.bt,10);
     setLotus($('rVisual'),v);
+  } else if(route.name==='sound'){
+    setLotus($('sdArt'),breathV(now/1000,10));
+  } else if(route.name==='practice'){
+    setLotus($('prArt'),breathV(now/1000,10));
   } else if(route.name==='player'&&cur){
     let v=.35;
     if(ctx&&!done){
@@ -1571,6 +1576,12 @@ function lotusFrame(){
       else { const past=strikeTimes.filter(x=>x<=t); v= past.length? bellV(t-past[past.length-1], cur.id==='bowl'?9:10) : .06; }
     }
     setLotus($('pArt'),v);
+  }
+  if(cur&&ctx&&!done&&!$('mini').hidden){
+    const t=ctx.currentTime; let m;
+    if(cur.id==='lotus') m= t<startAt? .06 : breathV(t-startAt,12);
+    else { const past=strikeTimes.filter(x=>x<=t); m= past.length? bellV(t-past[past.length-1], cur.id==='bowl'?9:10) : .06; }
+    setLotus($('miniArt'),m);
   }
 }
 requestAnimationFrame(lotusFrame);
