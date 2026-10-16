@@ -740,7 +740,7 @@ const $=id=>document.getElementById(id);
 function load(k,d){try{const v=localStorage.getItem('gyo:'+k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem('gyo:'+k,JSON.stringify(v))}catch(e){}}
 const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1},load('settings',{}));
-if(!settings.sv3){ if(settings.fs===1.12) settings.fs=1; settings.sv3=1; save('settings',settings); }
+if(!settings.sv4){ settings.fs=1; settings.sv3=1; settings.sv4=1; save('settings',settings); }
 if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(settings.gap===3) settings.gap=5; settings.sv2=1; save('settings',settings); }
 const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
 let sessions=load('sessions',[]);   // {t, id, sec}
@@ -1562,7 +1562,7 @@ function lotusFrame(){
     if(r.count>0) v=.06+.1*(1-r.count/5);
     else if(lotusPulse&&now-lotusPulse<24000) v=bellV((now-lotusPulse)/1000,8);
     else v=breathV(r.bt,10);
-    setLotus($('rVisual'),reduceMotion?.7:v);
+    setLotus($('rVisual'),v);
   } else if(route.name==='player'&&cur){
     let v=.35;
     if(ctx&&!done){
@@ -1570,7 +1570,7 @@ function lotusFrame(){
       if(cur.id==='lotus') v= t<startAt? .06 : breathV(t-startAt,12);
       else { const past=strikeTimes.filter(x=>x<=t); v= past.length? bellV(t-past[past.length-1], cur.id==='bowl'?9:10) : .06; }
     }
-    setLotus($('pArt'),reduceMotion?.7:v);
+    setLotus($('pArt'),v);
   }
 }
 requestAnimationFrame(lotusFrame);
