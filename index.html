@@ -279,6 +279,15 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .su-text.live .ph{color:var(--muted)}
 .su-text.live .ph.past{color:var(--ink)}
 .su-text .ph.now{background:var(--moss-soft);color:var(--ink);box-shadow:0 0 0 3px var(--moss-soft)}
+.su-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.su-tabs .chip{justify-content:center;font-family:var(--serif);font-size:17px;padding:10px 0}
+.su-text.lines p{display:flex;flex-direction:column;gap:2px}
+.su-text.lines .ph{align-self:flex-start}
+.su-text.hanja p{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-start}
+.ph.hz{display:inline-flex;flex-direction:column;align-items:center;line-height:1.5;padding:4px 6px}
+.ph.hz b{font-weight:500}
+.ph.hz i{font-style:normal;font-size:.62em;color:var(--muted);letter-spacing:.08em}
+.su-text.live .ph.hz i{color:inherit;opacity:.75}
 .su-text .su-end{text-align:center;color:var(--muted);font-size:14px;margin-top:8px}
 .su-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .su-prog{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
@@ -612,8 +621,9 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
   <section class="view" id="v-sutra" hidden>
     <div class="topbar"><button class="iconbtn" data-back aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="suTitle">금강경</h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button></div>
     <div class="su-head">
-      <span class="label su-han">金剛般若波羅蜜經</span>
-      <div class="su-nav">
+      <span class="label su-han" id="suHan">金剛般若波羅蜜經</span>
+      <div class="su-tabs" id="suTabs" role="group" aria-label="읽기 고르기" hidden></div>
+      <div class="su-nav" id="suNav">
         <button class="iconbtn" id="chPrev" aria-label="이전 분"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <label class="sr" for="chSel">분 고르기</label>
         <select id="chSel" class="tinput"></select>
@@ -814,7 +824,7 @@ function show(r){
   if(r.name==='sound') renderSound(r.id);
   if(r.name==='practice') renderPractice(r.id);
   if(r.name==='check') renderCheck();
-  if(r.name==='sutra') renderSutra();
+  if(r.name==='sutra'){ if(r.book&&r.book!==su.book) suOpen(r.book); renderSutra(); }
   updateMini();
   window.scrollTo({top:0});
 }
@@ -1363,10 +1373,10 @@ const SUTRAS=[
   ['금강경','본성으로 현상계를 품다',SV('<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M10 4l2 16 2-16"/>','si-brass')],
   ['법성게','의상대사가 210자로 노래한 화엄의 세계',SV('<rect x="3.5" y="3.5" width="17" height="17" rx="1"/><path d="M7 7h10v10H7v-6.5h6.5V14H10"/>','si-seal')],
   ['사찰의 주련','법당 기둥에 걸린 글귀 읽기',SV('<path d="M3 4h18M5 4l-1 2M19 4l1 2"/><path d="M7 6v15M17 6v15"/><rect x="10" y="7" width="4" height="11" rx=".5"/><path d="M12 9v1.5M12 12.5V14"/>','si-moss')]];
-const SUTRA_READY={'금강경':'32분'};
-$('sutraRows').innerHTML=SUTRAS.map(([t,d,ic])=>`<button class="prow srow${SUTRA_READY[t]?' ready':''}" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">${SUTRA_READY[t]?SUTRA_READY[t]+' · 읽기':'준비 중'}</span></button>`).join('');
+const SUTRA_READY={'반야심경':'한자 · 한글','금강경':'32분 · 읽기'};
+$('sutraRows').innerHTML=SUTRAS.map(([t,d,ic])=>`<button class="prow srow${SUTRA_READY[t]?' ready':''}" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">${SUTRA_READY[t]?SUTRA_READY[t]:'준비 중'}</span></button>`).join('');
 document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',()=>{
-  if(SUTRA_READY[b.dataset.sutra]){ go({name:'sutra'}); return; }
+  if(SUTRA_READY[b.dataset.sutra]){ suOpen(b.dataset.sutra); go({name:'sutra',book:b.dataset.sutra}); return; }
   toast(b.dataset.sutra+(((b.dataset.sutra.slice(-1).charCodeAt(0)-0xAC00)%28)?'은':'는')+' 준비 중입니다.');
 }));
 // 펼침 상태 기억
@@ -1767,50 +1777,84 @@ const SUTRA_AUDIO=Array.from({length:32},(_,i)=>i+1);
 // 마디별 시작 시각(초)을 알면 SUTRA_CUES[분번호]=[0, 4.2, 9.8 …]로 넣어 정확히 맞춤. 없으면 글자 수 비율로 맞춤.
 // 녹음의 쉼(무음) 자리를 찾아 마디마다 맞춘 시작 시각(초). 녹음은 분마다 '제N, 제목'을 먼저 읽고 본문을 읽음.
 const SUTRA_CUES={"1":[4.31,5.45,12.53,21.56],"2":[2.29,14.06,15.35,20.1,30.96,32.18,35.11,40.87,45.73,55.72,57.93],"3":[2.26,4.7,10.06,17.72,22.81,27.51,28.55,35.46],"4":[2.13,10.86,12.91,16.54,27.33,28.17,32.76,35.23,36.11,41.02,42.45,43.51,51.81],"5":[2.32,7.62,9.71,12.8,17.77,20.22],"6":[3.63,6.14,10.96,12.21,15.58,24.57,26.8,33.18,37.84,41.61,47.95,58.13,59.72,72.08,79.78,87.18,96.14,98.74],"7":[1.75,7.88,9.72,12.29,19.1,23.51],"8":[3.73,12.84,14.46,17.96,25.85,34.28,41.44],"9":[1.9,3.82,9.33,10.69,12.8,18.71,25.27,26.98,32.71,34.04,35.07,44.97,46.7,50.66,51.96,55.06,63.61,65.33,69.24,70.59,72.73,80.32,90.77,96.43,102.36,105.69,114.16],"10":[1.66,4.89,11.76,13.83,19.34,22.47,24.93,26.01,34.17,41.72,47.79,55.62,56.99,58.07],"11":[1.62,6.66,11.19,12.82,14.15,21.69,24.43,33.74,35.31,36.76,37.86,40.33],"12":[2.61,7.62,20.26,21.33,26.1],"13":[1.11,6.4,11.33,13.79,18.69,26.36,31.04,33.56,36.43,38.95,43.9,45.23,46.3,47.17,52.5,58.14,61.78,65.98,70.47,78.23,84.98],"14":[1.69,8.58,10.96,15.08,20.66,29.3,32.88,43.3,51.1,60.89,70.65,79.18,87.21,88.51,90.97,95.48,99.39,106.34,112.53,114.44,126.59,138.18,147.49,152.59,159.88,165.62,170.99,178.4,187.19,189.56,199.59,202.97,206.06,220.52,223.03],"15":[1.08,3.48,11.53,15.43,24.48,32.59,38.37,45.04,54.62,62.57,68.57,75.18,83.56,92.43],"16":[2.56,3.67,20.63,25.28,31.9,48.55,50.33,61.09,64.17],"17":[1.05,3.97,6.41,16.88,19.35,28.5,33.98,34.83,43.67,51.08,59.7,60.67,72.57,73.68,81.06,91.01,91.84,107.61,108.64,117.75,125.1,130.96,135.08,142.98,145.18,147.83,155.99,165.33,172.62,179.73,186.85,194.02],"18":[1.88,3.65,6.16,7.16,10.09,12.21,13.93,15.59,17.81,22.29,25.93,28.74,30.46,31.88,35.01,37.09,38.82,40.19,42.2,45.06,48.59,50.07,52.03,54.98,57.52,66.09,67.27,68.38,70.8,76.56,81.95],"19":[1.71,5.39,13.21,14.42,19.58,25.48],"20":[1.78,5.55,9.11,10.15,11.29,16.13,23.31,26.72,30.0,31.02,32.14,35.44],"21":[2.51,5.4,9.31,18.49,22.15,27.5,29.84,35.98,37.87],"22":[1.28,3.92,10.97,12.19,14.96],"23":[1.2,9.28,18.82],"24":[1.17,11.88,22.8],"25":[1.07,5.0,9.32,10.69,13.28,17.53,26.22,35.42],"26":[2.76,5.3,7.87,11.54,12.64,16.3,17.98,25.16,26.58,34.64,36.12,44.07],"27":[3.21,10.49,12.57,18.81,28.0],"28":[1.11,3.8,19.22,24.86,27.39,31.56],"29":[1.14,14.37],"30":[4.04,8.64,11.41,14.14,15.27,24.5,35.33,41.24,48.38,58.54],"31":[1.19,3.6,12.32,14.89,17.28,18.66,20.81,24.98,40.99,41.86,52.39],"32":[1.12,3.9,22.57,24.24,28.6,37.79]};
-const suFlat=GEUMGANG.map(c=>c.paras.flat());
-let su={ch:0,i:0,playing:false,timer:null,audio:null};
-try{ const sp=load('sutraPos',null); if(sp&&GEUMGANG[sp.ch]) su.ch=sp.ch, su.i=Math.min(sp.i,suFlat[sp.ch].length-1); }catch(e){}
-const chName=c=>`제${c.no}분 ${c.title}`;
+// 반야심경: 두 가지 읽기(한자 독송 · 한글 풀이). 한자 마디는 {t:한글 음, h:한자}
+const HEART=[{"key": "hanja", "tab": "한자", "title": "마하반야바라밀다심경", "paras": [[{"t": "관자재보살", "h": "觀自在菩薩"}, {"t": "행심반야바라밀다시", "h": "行深般若波羅蜜多時"}, {"t": "조견오온개공", "h": "照見五蘊皆空"}, {"t": "도일체고액", "h": "度一切苦厄"}], [{"t": "사리자", "h": "舍利子"}, {"t": "색불이공", "h": "色不異空"}, {"t": "공불이색", "h": "空不異色"}, {"t": "색즉시공", "h": "色卽是空"}, {"t": "공즉시색", "h": "空卽是色"}], [{"t": "수상행식", "h": "受想行識"}, {"t": "역부여시", "h": "亦復如是"}, {"t": "사리자", "h": "舍利子"}, {"t": "시제법공상", "h": "是諸法空相"}], [{"t": "불생불멸", "h": "不生不滅"}, {"t": "불구부정", "h": "不垢不淨"}, {"t": "부증불감", "h": "不增不減"}, {"t": "시고", "h": "是故"}, {"t": "공중무색", "h": "空中無色"}, {"t": "무수상행식", "h": "無受想行識"}], [{"t": "무안이비설신의", "h": "無眼耳鼻舌身意"}, {"t": "무색성향미촉법", "h": "無色聲香味觸法"}, {"t": "무안계", "h": "無眼界"}, {"t": "내지", "h": "乃至"}, {"t": "무의식계", "h": "無意識界"}], [{"t": "무무명", "h": "無無明"}, {"t": "역무무명진", "h": "亦無無明盡"}, {"t": "내지", "h": "乃至"}, {"t": "무노사", "h": "無老死"}, {"t": "역무노사진", "h": "亦無老死盡"}, {"t": "무고집멸도", "h": "無苦集滅道"}], [{"t": "무지역무득", "h": "無智亦無得"}, {"t": "이무소득고", "h": "以無所得故"}, {"t": "보리살타", "h": "菩提薩埵"}, {"t": "의반야바라밀다고", "h": "依般若波羅蜜多故"}], [{"t": "심무가애", "h": "心無罣礙"}, {"t": "무가애고", "h": "無罣礙故"}, {"t": "무유공포", "h": "無有恐怖"}, {"t": "원리전도몽상", "h": "遠離顚倒夢想"}, {"t": "구경열반", "h": "究竟涅槃"}], [{"t": "삼세제불", "h": "三世諸佛"}, {"t": "의반야바라밀다고", "h": "依般若波羅蜜多故"}, {"t": "득아뇩다라삼먁삼보리", "h": "得阿耨多羅三藐三菩提"}], [{"t": "고지반야바라밀다", "h": "故知般若波羅蜜多"}, {"t": "시대신주", "h": "是大神呪"}, {"t": "시대명주", "h": "是大明呪"}, {"t": "시무상주", "h": "是無上呪"}], [{"t": "시무등등주", "h": "是無等等呪"}, {"t": "능제일체고", "h": "能除一切苦"}, {"t": "진실불허", "h": "眞實不虛"}, {"t": "고설", "h": "故說"}, {"t": "반야바라밀다주", "h": "般若波羅蜜多呪"}], [{"t": "즉설주왈", "h": "卽說呪曰"}], ["아제아제 바라아제 바라승아제 모지 사바하", "아제아제 바라아제 바라승아제 모지 사바하", "아제아제 바라아제 바라승아제 모지 사바하"]]}, {"key": "hangul", "tab": "한글", "title": "마하반야바라밀다심경", "paras": [["관자재보살이 깊은 반야바라밀다를 행할 때,", "오온이 공한 것을 비추어 보고 온갖 고통에서 건너느니라."], ["사리자여, 색이 공과 다르지 않고 공이 색과 다르지 않으며,", "색이 곧 공이요 공이 곧 색이니,", "수상행식도 그러하니라."], ["사리자여, 모든 법은 공하여 나지도 멸하지도 않으며,", "더럽지도 깨끗하지도 않으며, 늘지도 줄지도 않느니라."], ["그러므로", "공 가운데는 색이 없고 수상행식도 없으며,", "안이비설신의도 없고, 색성향미촉법도 없으며,", "눈의 경계도 의식의 경계까지도 없고,", "무명도 무명이 다함까지도 없으며,", "늙고 죽음도 늙고 죽음이 다함까지도 없고,", "고집멸도도 없으며, 지혜도 얻음도 없느니라."], ["얻을 것이 없는 까닭에", "보살은 반야바라밀다를 의지하므로,", "마음에 걸림이 없고", "걸림이 없으므로 두려움이 없어서,"], ["뒤바뀐 헛된 생각을 멀리 떠나 완전한 열반에 들어가며,", "삼세의 모든 부처님도 반야바라밀다를 의지하므로 최상의 깨달음을 얻느니라."], ["반야바라밀다는 가장 신비하고 밝은 주문이며", "위없는 주문이며 무엇과도 견줄 수 없는 주문이니,", "온갖 괴로움을 없애고 진실하여 허망하지 않음을 알지니라."], ["이제 반야바라밀다주를 말하리라."], ["아제아제 바라아제 바라승아제 모지 사바하", "아제아제 바라아제 바라승아제 모지 사바하", "아제아제 바라아제 바라승아제 모지 사바하"]]}];
+// 녹음: audio/banya-hanja.mp3, audio/banya-hangul.mp3 — 들어오면 아래 목록에 key를 넣고 HEART_CUES에 마디별 시작 시각(초)을 넣음
+const HEART_AUDIO=[];
+const HEART_CUES={};
+const BOOKS={
+  '금강경':{han:'金剛般若波羅蜜經',chs:GEUMGANG,tabs:false,chain:true,lines:false,
+    label:c=>`제${c.no}분 ${c.title}`, pos:c=>`제${c.no}분`,
+    has:c=>SUTRA_AUDIO.includes(c.no), cues:c=>SUTRA_CUES[c.no],
+    src:c=>`audio/geumgang-${String(c.no).padStart(2,'0')}.mp3`, end:'금강반야바라밀경 마침'},
+  '반야심경':{han:'摩訶般若波羅蜜多心經',chs:HEART,tabs:true,chain:false,
+    label:c=>c.title, pos:c=>c.tab,
+    has:c=>HEART_AUDIO.includes(c.key), cues:c=>HEART_CUES[c.key],
+    src:c=>`audio/banya-${c.key}.mp3`, end:''}
+};
+const phT=x=>typeof x==='string'?x:x.t;
+let su={book:'금강경',ch:0,i:0,playing:false,timer:null,audio:null};
+let suPosAll={};
+try{ suPosAll=load('sutraPos2',null)||{}; const old=load('sutraPos',null); if(old&&!suPosAll['금강경']) suPosAll['금강경']=old; }catch(e){}
+const B=()=>BOOKS[su.book], C=()=>B().chs[su.ch], FL=()=>C().paras.flat();
+function suOpen(book){
+  if(!BOOKS[book]) book='금강경';
+  su.book=book; const p=suPosAll[book]; su.ch=0; su.i=0; su.touched=false;
+  if(p&&B().chs[p.ch]){ su.ch=p.ch; su.i=Math.min(p.i,FL().length-1); }
+}
+suOpen('금강경');
 function renderSutra(){
-  $('chSel').innerHTML=GEUMGANG.map((c,k)=>`<option value="${k}"${k===su.ch?' selected':''}>${esc(chName(c))}</option>`).join('');
-  const c=GEUMGANG[su.ch]; let n=0;
-  $('suText').innerHTML=`<h3>${esc(chName(c))}</h3>`+c.paras.map(p=>'<p>'+p.map(t=>`<span class="ph" data-i="${n++}">${esc(t)}</span>`).join(' ')+'</p>').join('')+
-    (su.ch===GEUMGANG.length-1?'<p class="su-end">금강반야바라밀경 마침</p>':'');
+  const bk=B(), c=C(); let n=0;
+  $('suTitle').textContent=su.book; $('suHan').textContent=bk.han;
+  $('suNav').hidden=bk.tabs; $('suTabs').hidden=!bk.tabs;
+  if(bk.tabs){ $('suTabs').innerHTML=bk.chs.map((v,k)=>`<button class="chip" data-tab="${k}" aria-pressed="${k===su.ch}">${esc(v.tab)}</button>`).join('');
+    $('suTabs').querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>suSwitch(+b.dataset.tab))); }
+  else { $('chSel').innerHTML=bk.chs.map((v,k)=>`<option value="${k}"${k===su.ch?' selected':''}>${esc(bk.label(v))}</option>`).join('');
+    $('chPrev').disabled=su.ch===0; $('chNext').disabled=su.ch===bk.chs.length-1; }
+  const one=x=>typeof x==='string'?`<span class="ph" data-i="${n++}">${esc(x)}</span>`:`<span class="ph hz" data-i="${n++}"><b>${esc(x.t)}</b><i lang="zh-Hant">${esc(x.h)}</i></span>`;
+  const lines=c.key==='hangul';
+  $('suText').className='su-text'+(lines?' lines':'')+(c.key==='hanja'?' hanja':'');
+  $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
+    (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
   $('suText').style.setProperty('--suz',settings.suz||1);
   document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz||1))));
-  $('chPrev').disabled=su.ch===0; $('chNext').disabled=su.ch===GEUMGANG.length-1;
   suMark(false);
 }
 function suMark(scroll){
   const els=$('suText').querySelectorAll('.ph');
   els.forEach((el,k)=>{ el.classList.toggle('now',k===su.i&&(su.playing||su.touched)); el.classList.toggle('past',k<su.i); });
   $('suText').classList.toggle('live',su.playing);
-  $('suPos').textContent=`제${GEUMGANG[su.ch].no}분 · ${su.i+1} / ${els.length} 마디`;
-  $('suMode').textContent=SUTRA_AUDIO.includes(GEUMGANG[su.ch].no)?'녹음과 함께 읽기':'글자만 천천히 넘김';
+  $('suPos').textContent=`${B().pos(C())} · ${su.i+1} / ${els.length} 마디`;
+  $('suMode').textContent=B().has(C())?'녹음과 함께 읽기':'글자만 천천히 넘김';
   $('suPlay').textContent=su.playing?'멈춤':(su.touched?'이어 듣기':'듣기');
   if(scroll&&els[su.i]) els[su.i].scrollIntoView({block:'center',behavior:'smooth'});
-  save('sutraPos',{ch:su.ch,i:su.i});
+  suPosAll[su.book]={ch:su.ch,i:su.i}; save('sutraPos2',suPosAll);
 }
-function phraseTimes(no,dur){ // 마디마다 시작 시각
-  if(SUTRA_CUES[no]) return SUTRA_CUES[no];
-  const ls=suFlat[no-1].map(t=>t.length+12), tot=ls.reduce((a,b)=>a+b,0); let acc=0;
+function phraseTimes(dur){ // 마디마다 시작 시각
+  const cu=B().cues(C()); if(cu) return cu;
+  const ls=FL().map(t=>phT(t).length+12), tot=ls.reduce((a,b)=>a+b,0); let acc=0;
   return ls.map(l=>{ const t=acc/tot*dur; acc+=l; return t; });
 }
 function suGoto(i,user){
-  const n=suFlat[su.ch].length; su.i=Math.max(0,Math.min(n-1,i)); su.touched=true;
-  if(su.playing&&su.usingAudio&&suEl&&suEl.duration){ suEl.currentTime=phraseTimes(GEUMGANG[su.ch].no,suEl.duration)[su.i]; }
+  const n=FL().length; su.i=Math.max(0,Math.min(n-1,i)); su.touched=true;
+  if(su.playing&&su.usingAudio&&suEl&&suEl.duration){ suEl.currentTime=phraseTimes(suEl.duration)[su.i]; }
   else if(su.playing){ clearTimeout(su.timer); suTick(); }
   suMark(true);
 }
-function suTick(){ // 녹음이 없을 때: 소리 내어 읽는 빠르기(약 4.5자/초)로 한 마디씩 넘김
-  const t=suFlat[su.ch][su.i]||'';
+function suNextCh(){ // 다음 분으로 이어 가기 (금강경). 반야심경은 한 번 읽고 멈춤
+  if(B().chain&&su.ch<B().chs.length-1){ su.ch++; su.i=0; renderSutra(); return true; }
+  return false;
+}
+function suTick(){ // 녹음이 없을 때: 소리 내어 읽는 빠르기로 한 마디씩 넘김
+  const t=phT(FL()[su.i]||'');
+  const ms=C().key==='hanja'?Math.max(1800,t.length*420+500):Math.max(2500,t.length*220+900);
   su.timer=setTimeout(()=>{
     if(!su.playing) return;
-    if(su.i<suFlat[su.ch].length-1){ su.i++; suMark(true); suTick(); }
-    else if(su.ch<GEUMGANG.length-1){ su.ch++; su.i=0; renderSutra(); suMark(true); suTick(); }
-    else { suStop(); }
-  },Math.max(2500,t.length*220+900));
+    if(su.i<FL().length-1){ su.i++; suMark(true); suTick(); }
+    else if(suNextCh()){ suMark(true); suTick(); }
+    else { su.i=0; suStop(); su.touched=false; suMark(false); }
+  },ms);
 }
 let suEl=null;
 function suAudio(){
@@ -1818,30 +1862,29 @@ function suAudio(){
   suEl=new Audio(); suEl.preload='auto'; suEl.setAttribute('playsinline','');
   suEl.addEventListener('timeupdate',()=>{
     if(!su.playing||!suEl.duration) return;
-    const ts=phraseTimes(GEUMGANG[su.ch].no,suEl.duration); let k=0;
+    const ts=phraseTimes(suEl.duration); let k=0;
     while(k+1<ts.length&&ts[k+1]<=suEl.currentTime+.15) k++;
     if(k!==su.i){ su.i=k; suMark(true); }
   });
   suEl.addEventListener('ended',()=>{
     if(!su.playing) return;
-    if(su.ch<GEUMGANG.length-1){ su.ch++; su.i=0; renderSutra(); suStartAudio(true); } else suStop();
+    if(suNextCh()) suStartAudio(true); else { su.i=0; suStop(); su.touched=false; suMark(false); }
   });
   suEl.addEventListener('error',()=>{ if(su.playing&&su.usingAudio){ su.usingAudio=false; suTick(); suMark(false); } });
   return suEl;
 }
 function suStartAudio(fromStart){
-  const a=suAudio(), no=GEUMGANG[su.ch].no;
-  const src=`audio/geumgang-${String(no).padStart(2,'0')}.mp3`;
+  const a=suAudio(), src=B().src(C());
   su.usingAudio=true; su.audio=a;
   a.volume=Math.min(1,settings.volume/100*.9+.1);
-  const seek=()=>{ const ts=phraseTimes(no,a.duration||0); a.currentTime=fromStart&&su.i===0?0:(ts[su.i]||0); };
+  const seek=()=>{ const ts=phraseTimes(a.duration||0); a.currentTime=fromStart&&su.i===0?0:(ts[su.i]||0); };
   if(!a.src.endsWith(src)){ a.src=src; a.addEventListener('loadedmetadata',seek,{once:true}); }
   else seek();
   a.play().catch(()=>{});
 }
 function suPlay(){
   unlockAudio(); su.playing=true; su.touched=true;
-  if(SUTRA_AUDIO.includes(GEUMGANG[su.ch].no)) suStartAudio(su.i===0); else { su.usingAudio=false; suTick(); }
+  if(B().has(C())) suStartAudio(su.i===0); else { su.usingAudio=false; suTick(); }
   suMark(true);
 }
 function suStop(){
@@ -1849,12 +1892,16 @@ function suStop(){
   if(suEl){ try{ suEl.pause(); }catch(e){} }
   if(!$('v-sutra').hidden) suMark(false);
 }
+function suSwitch(k){ // 분 바꾸기 / 한자·한글 바꾸기
+  if(k<0||k>=B().chs.length||k===su.ch) return;
+  const was=su.playing; suStop(); su.ch=k; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0}); if(was) suPlay();
+}
 $('suPlay').addEventListener('click',()=>{ su.playing?suStop():suPlay(); });
 $('phPrev').addEventListener('click',()=>suGoto(su.i-1,true));
 $('phNext').addEventListener('click',()=>suGoto(su.i+1,true));
-$('chSel').addEventListener('change',e=>{ const was=su.playing; suStop(); su.ch=+e.target.value; su.i=0; renderSutra(); window.scrollTo({top:0}); if(was) suPlay(); });
-$('chPrev').addEventListener('click',()=>{ if(su.ch>0){ const was=su.playing; suStop(); su.ch--; su.i=0; renderSutra(); window.scrollTo({top:0}); if(was) suPlay(); } });
-$('chNext').addEventListener('click',()=>{ if(su.ch<GEUMGANG.length-1){ const was=su.playing; suStop(); su.ch++; su.i=0; renderSutra(); window.scrollTo({top:0}); if(was) suPlay(); } });
+$('chSel').addEventListener('change',e=>suSwitch(+e.target.value));
+$('chPrev').addEventListener('click',()=>suSwitch(su.ch-1));
+$('chNext').addEventListener('click',()=>suSwitch(su.ch+1));
 document.querySelectorAll('[data-sz]').forEach(b=>b.addEventListener('click',()=>{ settings.suz=+b.dataset.sz; save('settings',settings); renderSutra(); }));
 
 /* ---------- 글자 크기 ---------- */
