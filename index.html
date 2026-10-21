@@ -263,8 +263,16 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .sub summary small{font-size:12.5px;color:var(--muted)}
 .sub[open] summary{border-bottom:1px solid var(--line)}
 .sub[open]>summary .mchev{transform:rotate(90deg)}
-.sub .rows{border:0;border-radius:0;background:var(--surface)}
-.sub .prow{padding-left:22px}
+.sub summary b{font-size:17.5px;font-weight:600}
+.sub .rows{border:0;border-radius:0;background:var(--bg);padding:6px 0 6px 0}
+.sub .prow{position:relative;padding:9px 14px 9px 30px;gap:12px}
+.sub .prow::before{content:"";position:absolute;left:24px;top:0;bottom:0;width:2px;background:var(--line)}
+.sub .prow:first-child::before{top:10px}.sub .prow:last-child::before{bottom:10px}
+.sub .prow+.prow{border-top:0}
+.sub .prow h4{font-size:15.5px;font-weight:500}
+.sub .prow p{font-size:12.5px}
+.sub .prow .chev{width:18px;height:18px}
+.sub .pebble{position:relative;z-index:1;width:28px;height:28px;margin-left:-15px;border-radius:50%;background:var(--surface);border:1.5px solid var(--moss);font-size:13px;font-weight:600}
 .srow.ready .soon{color:var(--moss);border-color:var(--moss)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 #v-sutra{gap:12px}
