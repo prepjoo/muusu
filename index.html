@@ -1545,16 +1545,23 @@ function loadRec(url){
   return bufCache[url];
 }
 function prefetchRec(p){ if(!hasRec(p)) return; [...new Set(p.steps.map(s=>s.t))].forEach((t,i)=>loadRec(recUrl(p.id,i+1)).catch(()=>{})); }
-function playRec(url,onend){
+function playRec(url,onend,again){
   const tok=speakTok;
+  try{ if(pctx&&pctx.state!=='running') pctx.resume(); }catch(e){} // 화면이 꺼졌다 켜지며 잠든 소리 장치를 깨움
   loadRec(url).then(buf=>{
     if(tok!==speakTok) return;
+    try{ if(pctx.state!=='running') pctx.resume(); }catch(e){}
     const src=pctx.createBufferSource(), g=pctx.createGain();
     src.buffer=buf; g.gain.value=Math.min(1,settings.volume/100*.8+.1);
     src.connect(g).connect(pctx.destination);
     src.onended=()=>{ if(recSrc===src) recSrc=null; onend(); };
     recSrc=src; src.start();
-  }).catch(()=>onend('fail'));
+  }).catch(()=>{ // 한 번 더 받아 보고, 그래도 안 되면 알리고 넘어감
+    if(tok!==speakTok) return;
+    if(!again){ setTimeout(()=>{ if(tok===speakTok) playRec(url,onend,true); },1200); return; }
+    if(!playRec.warned){ playRec.warned=1; toast('안내 목소리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); }
+    onend('fail');
+  });
 }
 function stopRec(){ if(recSrc){ try{ recSrc.onended=null; recSrc.stop(); }catch(e){} recSrc=null; } }
 function hush(){ speakTok++; stopRec(); try{ if(hasTTS) speechSynthesis.cancel(); }catch(e){} }
@@ -1838,6 +1845,7 @@ try{ suPosAll=load('sutraPos2',null)||{}; const old=load('sutraPos',null); if(ol
 const B=()=>BOOKS[su.book], C=()=>B().chs[su.ch], FL=()=>C().paras.flat();
 function suOpen(book){
   if(!BOOKS[book]) book='금강경';
+  if(su.playing) suStop();
   su.book=book; const p=suPosAll[book]; su.ch=0; su.i=0; su.touched=false;
   if(p&&B().chs[p.ch]){ su.ch=p.ch; su.i=Math.min(p.i,FL().length-1); }
 }
@@ -1904,6 +1912,7 @@ function suAudio(){
   suEl=new Audio(); suEl.preload='auto'; suEl.setAttribute('playsinline','');
   suEl.addEventListener('timeupdate',()=>{
     if(!su.playing||!suEl.duration) return;
+    if(suEl.currentTime>0) su.lastT=suEl.currentTime;
     const ts=phraseTimes(suEl.duration); let k=0;
     const lead=C().key==='bs'?1.2:.15; // 법성게는 낭독보다 조금 먼저 한문·음이 떠오르게
     while(k+1<ts.length&&ts[k+1]<=suEl.currentTime+lead) k++;
@@ -1913,7 +1922,21 @@ function suAudio(){
     if(!su.playing) return;
     if(suNextCh()) suStartAudio(true); else { su.i=0; suStop(); su.touched=false; suMark(false); }
   });
-  suEl.addEventListener('error',()=>{ if(su.playing&&su.usingAudio){ su.usingAudio=false; suTick(); suMark(false); } });
+  // 불러오기가 끊기면 조용히 글자만 넘기지 않고, 두 번까지 다시 불러와 멈춘 자리부터 이어 감
+  suEl.addEventListener('error',()=>{
+    if(!(su.playing&&su.usingAudio)) return;
+    su.retry=(su.retry||0)+1;
+    if(su.retry<=2){
+      const src=suEl.src, t=su.lastT||0; $('suMode').textContent='녹음 다시 불러오는 중…';
+      setTimeout(()=>{ if(!su.playing) return; su.switching=true; suEl.src=src;
+        suEl.addEventListener('loadedmetadata',()=>{ try{ suEl.currentTime=t; }catch(e){} },{once:true});
+        suEl.play().catch(suPlayFail); },1200*su.retry);
+    } else { suStop(); toast('녹음을 불러오지 못했어요. 인터넷 연결을 확인하고 [이어 듣기]를 눌러 주세요.'); }
+  });
+  suEl.addEventListener('playing',()=>{ su.retry=0; su.switching=false; if(su.playing) suMark(false); suWarmNext(); });
+  suEl.addEventListener('waiting',()=>{ if(su.playing) $('suMode').textContent='녹음 불러오는 중…'; });
+  // 전화·다른 앱·화면 꺼짐 등으로 휴대폰이 소리를 멈추면 화면도 '이어 듣기'로 맞춤
+  suEl.addEventListener('pause',()=>{ if(su.playing&&su.usingAudio&&!su.switching&&!suEl.ended){ su.playing=false; clearTimeout(su.timer); suWakeOff(); suMark(false); } });
   return suEl;
 }
 function suStartAudio(fromStart){
@@ -1921,17 +1944,34 @@ function suStartAudio(fromStart){
   su.usingAudio=true; su.audio=a;
   a.volume=Math.min(1,settings.volume/100*.9+.1);
   const seek=()=>{ const ts=phraseTimes(a.duration||0); a.currentTime=fromStart&&su.i===0?0:(ts[su.i]||0); };
-  if(!a.src.endsWith(src)){ a.src=src; a.addEventListener('loadedmetadata',seek,{once:true}); }
+  if(!a.src.endsWith(src)){ su.switching=true; a.src=src; a.addEventListener('loadedmetadata',seek,{once:true}); }
   else seek();
-  a.play().catch(()=>{});
+  a.play().catch(suPlayFail);
 }
+function suPlayFail(err){
+  if(err&&err.name==='AbortError') return; // 다른 파일로 바꾸는 중
+  if(err&&err.name==='NotSupportedError'&&su.playing) return; // 불러오기 실패 → error 처리에서 다시 불러옴
+  su.switching=false;
+  if(su.playing){ suStop(); toast('소리가 멈췄어요. [이어 듣기]를 눌러 주세요.'); }
+}
+let suWarmed={};
+function suWarmNext(){ // 금강경: 다음 분 녹음을 미리 받아 두어 분이 바뀔 때 끊김이 없게
+  const bk=B(); if(!bk.chain||su.ch>=bk.chs.length-1) return;
+  const nx=bk.chs[su.ch+1]; if(!bk.has(nx)) return; const u=bk.src(nx);
+  if(suWarmed[u]) return; suWarmed[u]=1;
+  setTimeout(()=>{ try{ fetch(u).then(r=>r.blob()).catch(()=>{ delete suWarmed[u]; }); }catch(e){} },4000);
+}
+let suWake=null;
+async function suWakeOn(){ if(settings.wake&&!suWake){ try{ suWake=await navigator.wakeLock?.request('screen'); }catch(e){} } }
+function suWakeOff(){ try{ suWake?.release(); }catch(e){} suWake=null; }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&su.playing){ suWake=null; suWakeOn(); } });
 function suPlay(){
-  unlockAudio(); su.playing=true; su.touched=true;
+  unlockAudio(); su.playing=true; su.touched=true; su.retry=0; suWakeOn();
   if(B().has(C())) suStartAudio(su.i===0); else { su.usingAudio=false; suTick(); }
   suMark(true);
 }
 function suStop(){
-  su.playing=false; clearTimeout(su.timer);
+  su.playing=false; clearTimeout(su.timer); suWakeOff();
   if(suEl){ try{ suEl.pause(); }catch(e){} }
   if(!$('v-sutra').hidden) suMark(false);
 }
