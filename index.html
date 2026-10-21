@@ -286,7 +286,7 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .ph{border-radius:6px;padding:1px 2px;cursor:pointer;transition:background .35s,color .35s;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .su-text.live .ph{color:var(--muted)}
 .su-text.live .ph.past{color:var(--ink)}
-.su-text .ph.now{background:var(--moss-soft);color:var(--ink);box-shadow:0 0 0 3px var(--moss-soft)}
+.su-text .ph.now{background:var(--moss-soft);color:var(--ink);box-shadow:0 0 0 3px var(--moss-soft),0 0 0 4.5px var(--moss)}
 .su-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
 .su-tabs .chip{justify-content:center;font-family:var(--serif);font-size:17px;padding:10px 0}
 .su-text.lines p{display:flex;flex-direction:column;gap:2px}
@@ -301,13 +301,14 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .vs-h{font-size:1.3em;letter-spacing:.2em;font-weight:500;line-height:1.35}
 .vs-t{font-size:.78em;letter-spacing:.25em;color:var(--muted);line-height:1.5}
 .vs-m{margin-top:5px;line-height:1.5}
-.su-text .ph.vs.now{border-color:var(--moss)}
+.su-text .ph.vs.now{border-color:var(--moss);box-shadow:none}
 .su-text.live .ph.vs.now .vs-t{color:var(--muted)}
 .su-text.reveal .ph.hide,.su-text.reveal .su-end{display:none}
 .su-text.reveal .ph.vs.now>*{animation:vsIn 1s ease both}
 .su-text.reveal .ph.vs.now .vs-t{animation-delay:.5s}
 .su-text.reveal .ph.vs.now .vs-m{animation-delay:1s}
 @keyframes vsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.su-text.live,.su-text.touched{padding-bottom:55vh} /* 끝부분 마디도 화면 위쪽까지 올라오게 */
 .su-text .su-end{text-align:center;color:var(--muted);font-size:14px;margin-top:8px}
 .su-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .su-prog{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
@@ -1875,10 +1876,13 @@ function suMark(scroll){
   els.forEach((el,k)=>{ el.classList.toggle('now',k===su.i&&(su.playing||su.touched)); el.classList.toggle('past',k<su.i); el.classList.toggle('hide',rv&&k>su.i); });
   $('suText').classList.toggle('reveal',rv);
   $('suText').classList.toggle('live',su.playing);
+  $('suText').classList.toggle('touched',!!su.touched);
   $('suPos').textContent=`${B().pos(C())} · ${su.i+1} / ${els.length} ${B().unit||'마디'}`;
   $('suMode').textContent=B().has(C())?'녹음과 함께 읽기':'글자만 천천히 넘김';
   $('suPlay').textContent=su.playing?'일시정지':(su.touched?'이어 듣기':'듣기');
-  if(scroll&&els[su.i]) els[su.i].scrollIntoView({block:'center',behavior:'smooth'});
+  if(scroll&&els[su.i]){ // 읽는 마디를 화면 위쪽(제목줄 바로 아래)에 맞춰, 뒤따를 글이 아래로 함께 보이게
+    const tb=document.querySelector('#v-sutra .topbar'), off=(tb?tb.getBoundingClientRect().bottom:60)+14;
+    window.scrollTo({top:Math.max(0,els[su.i].getBoundingClientRect().top+window.scrollY-off),behavior:'smooth'}); }
   suPosAll[su.book]={ch:su.ch,i:su.i}; save('sutraPos2',suPosAll);
 }
 function phraseTimes(dur){ // 마디마다 시작 시각
