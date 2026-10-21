@@ -288,6 +288,17 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .ph.hz b{font-weight:500}
 .ph.hz i{font-style:normal;font-size:.62em;color:var(--muted);letter-spacing:.08em}
 .su-text.live .ph.hz i{color:inherit;opacity:.75}
+.su-text.verse .vs-list{display:flex;flex-direction:column;gap:14px}
+.ph.vs{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px 12px;border-radius:14px}
+.vs-h{font-size:1.3em;letter-spacing:.2em;font-weight:500;line-height:1.6}
+.vs-t{font-size:.78em;letter-spacing:.25em;color:var(--muted)}
+.vs-m{margin-top:8px;line-height:1.75}
+.su-text.live .ph.vs.now .vs-t{color:var(--muted)}
+.su-text.reveal .ph.hide,.su-text.reveal .su-end{display:none}
+.su-text.reveal .ph.vs.now>*{animation:vsIn 1s ease both}
+.su-text.reveal .ph.vs.now .vs-t{animation-delay:.5s}
+.su-text.reveal .ph.vs.now .vs-m{animation-delay:1s}
+@keyframes vsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .su-text .su-end{text-align:center;color:var(--muted);font-size:14px;margin-top:8px}
 .su-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .su-prog{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
@@ -1373,7 +1384,7 @@ const SUTRAS=[
   ['금강경','본성으로 현상계를 품다',SV('<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M10 4l2 16 2-16"/>','si-brass')],
   ['법성게','의상대사가 210자로 노래한 화엄의 세계',SV('<rect x="3.5" y="3.5" width="17" height="17" rx="1"/><path d="M7 7h10v10H7v-6.5h6.5V14H10"/>','si-seal')],
   ['사찰의 주련','법당 기둥에 걸린 글귀 읽기',SV('<path d="M3 4h18M5 4l-1 2M19 4l1 2"/><path d="M7 6v15M17 6v15"/><rect x="10" y="7" width="4" height="11" rx=".5"/><path d="M12 9v1.5M12 12.5V14"/>','si-moss')]];
-const SUTRA_READY={'반야심경':'한자 · 한글','금강경':'32분 · 읽기'};
+const SUTRA_READY={'반야심경':'한자 · 한글','금강경':'32분 · 읽기','법성게':'30구 · 읽기'};
 $('sutraRows').innerHTML=SUTRAS.map(([t,d,ic])=>`<button class="prow srow${SUTRA_READY[t]?' ready':''}" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">${SUTRA_READY[t]?SUTRA_READY[t]:'준비 중'}</span></button>`).join('');
 document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',()=>{
   if(SUTRA_READY[b.dataset.sutra]){ suOpen(b.dataset.sutra); go({name:'sutra',book:b.dataset.sutra}); return; }
@@ -1782,6 +1793,10 @@ const HEART=[{"key": "hanja", "tab": "한자", "title": "마하반야바라밀�
 // 녹음: audio/banya-hanja.mp3, audio/banya-hangul.mp3 (경 제목을 먼저 읽음). HEART_CUES = 마디별 시작 시각(초)
 const HEART_AUDIO=['hanja','hangul'];
 const HEART_CUES={"hanja": [2.94, 3.8, 5.74, 7.44, 8.93, 9.59, 10.89, 11.7, 12.76, 14.41, 14.93, 15.57, 16.08, 17.48, 18.11, 19.44, 20.05, 20.36, 21.27, 22.76, 25.61, 27.38, 28.14, 29.08, 31.24, 31.86, 33.02, 33.95, 34.75, 35.87, 37.77, 39.13, 40.62, 41.37, 43.68, 44.67, 45.88, 46.68, 47.88, 49.5, 50.12, 51.65, 54.94, 56.5, 57.33, 58.15, 59.78, 60.68, 61.89, 62.98, 63.32, 65.31, 67.27, 71.64, 76.14], "hangul": [2.94, 6.67, 12.52, 19.09, 23.22, 26.09, 31.84, 37.93, 38.76, 43.9, 48.97, 53.51, 57.72, 60.66, 65.07, 67.86, 71.49, 74.04, 78.43, 83.37, 91.59, 99.44, 104.25, 110.26, 113.56, 118.96, 123.46]};
+// 법성게: 30구. 한 구 = {h:한문, t:한글음, m:현대어 풀이}. 녹음은 풀이만 읽음 → audio/beopseong.mp3
+const BEOPSEONG=[{"h": "法性圓融無二相", "t": "법성원융무이상", "m": "법의 성품은 원융하여 두 모습이 없고"}, {"h": "諸法不動本來寂", "t": "제법부동본래적", "m": "모든 법은 동요함이 없이 본래 고요하네."}, {"h": "無名無相絶一切", "t": "무명무상절일체", "m": "이름도 모양도 없어 온갖 차별 끊겼으니"}, {"h": "證智所知非餘境", "t": "증지소지비여경", "m": "깨달은 지혜로 알 뿐, 다른 경계로는 알 수 없네."}, {"h": "眞性甚深極微妙", "t": "진성심심극미묘", "m": "참된 성품 깊고 깊어 지극히 오묘하니"}, {"h": "不守自性隨緣成", "t": "불수자성수연성", "m": "자기 성품 고집하지 않고 인연 따라 이루어지네."}, {"h": "一中一切多中一", "t": "일중일체다중일", "m": "하나 속에 모두가 있고 여럿 속에 하나가 있으며"}, {"h": "一卽一切多卽一", "t": "일즉일체다즉일", "m": "하나가 곧 모두이고 여럿이 곧 하나이네."}, {"h": "一微塵中含十方", "t": "일미진중함시방", "m": "한 티끌 그 가운데 온 우주(시방)를 머금었고"}, {"h": "一切塵中亦如是", "t": "일체진중역여시", "m": "낱낱의 티끌마다 온 우주가 들어있네."}, {"h": "無量遠劫卽一念", "t": "무량원겁즉일념", "m": "한량없는 오랜 세월이 곧 한 생각 찰나이고"}, {"h": "一念卽是無量劫", "t": "일념즉시무량겁", "m": "한 생각이 순간 속에 무량 세월 들어있네."}, {"h": "九世十世互相卽", "t": "구세십세호상즉", "m": "과거·현재·미래의 모든 세월 서로 넘나드나"}, {"h": "仍不雜亂隔別成", "t": "잉불잡난격별성", "m": "어지럽게 섞이지 않고 따로따로 또 분연하네."}, {"h": "初發心時便正覺", "t": "초발심시변정각", "m": "처음 깨달음의 마음을 낼 때가 곧 바른 깨달음의 자리요"}, {"h": "生死涅槃常共和", "t": "생사열반상공화", "m": "생사와 열반이 언제나 함께 조화롭네."}, {"h": "理事冥然無分別", "t": "이사명연무분별", "m": "진리(理)와 현상(事)이 그윽히 합하여 분별이 없으니"}, {"h": "十佛普賢大人境", "t": "시불보현대인경", "m": "부처님과 보현보살 대인의 경지이네."}, {"h": "能仁海印三昧中", "t": "능인해인삼매중", "m": "부처님께서는 해인삼매 정념 속에서"}, {"h": "繁出如意不思議", "t": "번출여의불사의", "m": "불가사의한 여의의 보배를 무수히 내어"}, {"h": "雨寶益生滿虛空", "t": "우보익생만허공", "m": "중생 이롭게 하는 보배 비 허공에 채우시니"}, {"h": "衆生隨器得利益", "t": "중생수기득이익", "m": "중생은 저마다의 그릇 따라 이익을 얻는구나."}, {"h": "是故行者還本際", "t": "시고행자환본제", "m": "그러므로 수행자가 근본 자리로 돌아가려면"}, {"h": "叵息妄想必不得", "t": "파식망상필부득", "m": "망상을 쉬지 않고서는 결코 얻을 수 없나니"}, {"h": "無緣善巧捉如意", "t": "무연선교착여의", "m": "조건 없는 방편으로 여의주를 움켜쥐어"}, {"h": "歸家隨分得資糧", "t": "귀가수분득자량", "m": "집에 돌아가 분수 따라 자량(양식)을 얻을지니라."}, {"h": "以陀羅尼無盡寶", "t": "이다라니무진보", "m": "다라니라는 마르지 않는 무진장의 보배로"}, {"h": "莊嚴法界實寶殿", "t": "장엄법계실보전", "m": "온 법계를 장엄하면 참다운 보배 궁전이요,"}, {"h": "窮坐實際中道床", "t": "궁좌실제중도상", "m": "마침내 실다운 중도의 자리에 앉게 되면"}, {"h": "舊來不動名爲佛", "t": "구래부동명위불", "m": "예로부터 흔들림 없는 그를 일러 부처라 하네."}];
+const BS_AUDIO=false;   // 녹음이 들어오면 true
+const BS_CUES=null;     // 구마다 풀이 낭독이 시작되는 시각(초)
 const BOOKS={
   '금강경':{han:'金剛般若波羅蜜經',chs:GEUMGANG,tabs:false,chain:true,lines:false,
     label:c=>`제${c.no}분 ${c.title}`, pos:c=>`제${c.no}분`,
@@ -1790,9 +1805,12 @@ const BOOKS={
   '반야심경':{han:'摩訶般若波羅蜜多心經',chs:HEART,tabs:true,chain:false,
     label:c=>c.title, pos:c=>c.tab,
     has:c=>HEART_AUDIO.includes(c.key), cues:c=>HEART_CUES[c.key],
-    src:c=>`audio/banya-${c.key}.mp3`, end:''}
+    src:c=>`audio/banya-${c.key}.mp3`, end:''},
+  '법성게':{han:'法性偈',chs:[{key:'bs',title:'법성게',paras:[BEOPSEONG]}],tabs:false,chain:false,
+    label:c=>c.title, pos:c=>'법성게', has:c=>BS_AUDIO, cues:c=>BS_CUES,
+    src:c=>'audio/beopseong.mp3', end:'의상대사 법성게 마침', unit:'구'}
 };
-const phT=x=>typeof x==='string'?x:x.t;
+const phT=x=>typeof x==='string'?x:(x.m||x.t);
 let su={book:'금강경',ch:0,i:0,playing:false,timer:null,audio:null};
 let suPosAll={};
 try{ suPosAll=load('sutraPos2',null)||{}; const old=load('sutraPos',null); if(old&&!suPosAll['금강경']) suPosAll['금강경']=old; }catch(e){}
@@ -1806,15 +1824,16 @@ suOpen('금강경');
 function renderSutra(){
   const bk=B(), c=C(); let n=0;
   $('suTitle').textContent=su.book; $('suHan').textContent=bk.han;
-  $('suNav').hidden=bk.tabs; $('suTabs').hidden=!bk.tabs;
+  $('suNav').hidden=bk.tabs||bk.chs.length<2; $('suTabs').hidden=!bk.tabs;
   if(bk.tabs){ $('suTabs').innerHTML=bk.chs.map((v,k)=>`<button class="chip" data-tab="${k}" aria-pressed="${k===su.ch}">${esc(v.tab)}</button>`).join('');
     $('suTabs').querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>suSwitch(+b.dataset.tab))); }
   else { $('chSel').innerHTML=bk.chs.map((v,k)=>`<option value="${k}"${k===su.ch?' selected':''}>${esc(bk.label(v))}</option>`).join('');
     $('chPrev').disabled=su.ch===0; $('chNext').disabled=su.ch===bk.chs.length-1; }
-  const one=x=>typeof x==='string'?`<span class="ph" data-i="${n++}">${esc(x)}</span>`:`<span class="ph hz" data-i="${n++}"><b>${esc(x.t)}</b><i lang="zh-Hant">${esc(x.h)}</i></span>`;
+  const one=x=>x.m?`<div class="ph vs" data-i="${n++}"><span class="vs-h" lang="zh-Hant">${esc(x.h)}</span><span class="vs-t">${esc(x.t)}</span><span class="vs-m">${esc(x.m)}</span></div>`:typeof x==='string'?`<span class="ph" data-i="${n++}">${esc(x)}</span>`:`<span class="ph hz" data-i="${n++}"><b>${esc(x.t)}</b><i lang="zh-Hant">${esc(x.h)}</i></span>`;
   const lines=c.key==='hangul';
-  $('suText').className='su-text'+(lines?' lines':'')+(c.key==='hanja'?' hanja':'');
-  $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
+  const verse=c.key==='bs';
+  $('suText').className='su-text'+(lines?' lines':'')+(c.key==='hanja'?' hanja':'')+(verse?' verse':'');
+  $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>verse?'<div class="vs-list">'+p.map(one).join('')+'</div>':'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
     (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
   $('suText').style.setProperty('--suz',settings.suz||1);
@@ -1823,9 +1842,11 @@ function renderSutra(){
 }
 function suMark(scroll){
   const els=$('suText').querySelectorAll('.ph');
-  els.forEach((el,k)=>{ el.classList.toggle('now',k===su.i&&(su.playing||su.touched)); el.classList.toggle('past',k<su.i); });
+  const rv=C().key==='bs'&&(su.playing||su.touched); // 법성게: 한 구씩 차례로 나타남
+  els.forEach((el,k)=>{ el.classList.toggle('now',k===su.i&&(su.playing||su.touched)); el.classList.toggle('past',k<su.i); el.classList.toggle('hide',rv&&k>su.i); });
+  $('suText').classList.toggle('reveal',rv);
   $('suText').classList.toggle('live',su.playing);
-  $('suPos').textContent=`${B().pos(C())} · ${su.i+1} / ${els.length} 마디`;
+  $('suPos').textContent=`${B().pos(C())} · ${su.i+1} / ${els.length} ${B().unit||'마디'}`;
   $('suMode').textContent=B().has(C())?'녹음과 함께 읽기':'글자만 천천히 넘김';
   $('suPlay').textContent=su.playing?'멈춤':(su.touched?'이어 듣기':'듣기');
   if(scroll&&els[su.i]) els[su.i].scrollIntoView({block:'center',behavior:'smooth'});
@@ -1848,7 +1869,7 @@ function suNextCh(){ // 다음 분으로 이어 가기 (금강경). 반야심경
 }
 function suTick(){ // 녹음이 없을 때: 소리 내어 읽는 빠르기로 한 마디씩 넘김
   const t=phT(FL()[su.i]||'');
-  const ms=C().key==='hanja'?Math.max(1800,t.length*420+500):Math.max(2500,t.length*220+900);
+  const ms=C().key==='hanja'?Math.max(1800,t.length*420+500):C().key==='bs'?Math.max(6000,t.length*230+3200):Math.max(2500,t.length*220+900);
   su.timer=setTimeout(()=>{
     if(!su.playing) return;
     if(su.i<FL().length-1){ su.i++; suMark(true); suTick(); }
@@ -1863,7 +1884,8 @@ function suAudio(){
   suEl.addEventListener('timeupdate',()=>{
     if(!su.playing||!suEl.duration) return;
     const ts=phraseTimes(suEl.duration); let k=0;
-    while(k+1<ts.length&&ts[k+1]<=suEl.currentTime+.15) k++;
+    const lead=C().key==='bs'?1.2:.15; // 법성게는 낭독보다 조금 먼저 한문·음이 떠오르게
+    while(k+1<ts.length&&ts[k+1]<=suEl.currentTime+lead) k++;
     if(k!==su.i){ su.i=k; suMark(true); }
   });
   suEl.addEventListener('ended',()=>{
