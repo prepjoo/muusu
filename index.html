@@ -303,10 +303,10 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .su-text .su-end{text-align:center;color:var(--muted);font-size:14px;margin-top:8px}
 .su-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .su-prog{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
-.su-ctl{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;align-items:center}
+.su-ctl{display:grid;grid-template-columns:52px 1fr 1fr 52px;gap:10px;align-items:center}
 .su-ctl .iconbtn{width:52px;height:52px;border:1px solid var(--line);background:var(--surface)}
 .su-size{display:flex;justify-content:center;gap:8px}
-.su-foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.subctl{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .restart{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);border-radius:999px;padding:0 14px;min-height:40px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
 .restart svg{width:16px;height:16px}
 .restart:active{background:var(--moss-soft)}
@@ -357,7 +357,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
 .rtext{font-family:var(--serif);font-size:clamp(18px,4.8vw,22px);line-height:1.6;max-width:30ch;min-height:5.2em;text-wrap:pretty;margin:0}
 .rbar{width:100%;max-width:340px;height:4px;background:var(--line);border-radius:999px;overflow:hidden}
 .rbar i{display:block;height:100%;background:var(--moss);transition:width .25s linear}
-.rcontrols{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;width:100%;max-width:340px;align-items:center}
+.rcontrols{display:grid;grid-template-columns:52px 1fr 1fr 52px;gap:10px;width:100%;max-width:340px;align-items:center}
 .rcontrols .iconbtn{width:52px;height:52px;border:1px solid var(--line);background:var(--surface)}
 .rcontrols .iconbtn:disabled{opacity:.35;cursor:default}
 
@@ -586,7 +586,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <button class="btn" id="pauseBtn">일시정지</button>
         <button class="btn ghost" id="stopBtn">마치기</button>
       </div>
-      <button class="restart" id="pRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button>
+      <div class="subctl" id="pSub"><button class="restart" id="pRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button><button class="restart" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈으로</button></div>
       <div class="controls" id="pDone" hidden>
         <button class="btn" id="homeBtn">홈으로</button>
         <button class="btn ghost" id="againBtn">한 번 더</button>
@@ -628,9 +628,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="rcontrols">
         <button class="iconbtn" id="rPrev" aria-label="이전 문장"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <button class="btn" id="rPause">일시정지</button>
+        <button class="btn ghost" id="rStop">마치기</button>
         <button class="iconbtn" id="rNext" aria-label="다음 문장"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
-      <button class="restart" id="rRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button>
+      <div class="subctl" id="rSub"><button class="restart" id="rRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button><button class="restart" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈으로</button></div>
       <p class="note" id="rHint"></p>
     </div>
   </section>
@@ -641,6 +642,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <div class="su-head">
       <span class="label su-han" id="suHan">金剛般若波羅蜜經</span>
       <div class="su-tabs" id="suTabs" role="group" aria-label="읽기 고르기" hidden></div>
+      <div class="su-size" role="group" aria-label="글자 크기"><button class="chip" data-sz="1">가</button><button class="chip" data-sz="1.15">가</button><button class="chip" data-sz="1.3">가</button></div>
       <div class="su-nav" id="suNav">
         <button class="iconbtn" id="chPrev" aria-label="이전 분"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <label class="sr" for="chSel">분 고르기</label>
@@ -654,9 +656,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="su-ctl">
         <button class="iconbtn" id="phPrev" aria-label="이전 마디"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-8 6 8 6zM6 6v12"/></svg></button>
         <button class="btn" id="suPlay">듣기</button>
+        <button class="btn ghost" id="suEnd">마치기</button>
         <button class="iconbtn" id="phNext" aria-label="다음 마디"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l8 6-8 6zM18 6v12"/></svg></button>
       </div>
-      <div class="su-foot"><button class="restart" id="suRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button><div class="su-size" role="group" aria-label="글자 크기"><button class="chip" data-sz="1">가</button><button class="chip" data-sz="1.15">가</button><button class="chip" data-sz="1.3">가</button></div></div>
+      <div class="subctl" id="suSub"><button class="restart" id="suRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button><button class="restart" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈으로</button></div>
     </div>
   </section>
 
@@ -998,7 +1001,7 @@ async function startSession(id){
   if(id==='lotus'){ startRain(startAt); nextThunder=startAt+15; } else nextStrike=startAt;
   $('pTitle').textContent=s.name+' · '+fmtPreset(chosen[id]);
   $('pArt').innerHTML=''; $('pHint').textContent=prepLeft?'자리를 잡고 숨을 고르세요.':s.hint;
-  $('pControls').hidden=false; $('pRestart').hidden=false; $('pDone').hidden=true; $('vol').value=sessVol(id);
+  $('pControls').hidden=false; $('pSub').hidden=false; $('pDone').hidden=true; $('vol').value=sessVol(id);
   setPauseUI();
   if(route.name==='player') show(route); else go({name:'player'});
   render(); lastTick=performance.now();
@@ -1061,7 +1064,7 @@ function finish(){
   remaining=0; done=true; record();
   closeAudio(cur.id==='lotus'?6:3);
   $('pHint').textContent='수고하셨습니다. '+fmtPreset(Math.round(total/60))+'을 기록했습니다.';
-  $('pControls').hidden=true; $('pRestart').hidden=true; $('pDone').hidden=false;
+  $('pControls').hidden=true; $('pSub').hidden=true; $('pDone').hidden=false;
   render(); updateMini();
 }
 function endSession(navigate){
@@ -1072,7 +1075,7 @@ function endSession(navigate){
   if(navigate) tab('home');
 }
 $('pauseBtn').addEventListener('click',togglePause);
-$('stopBtn').addEventListener('click',()=>{ endSession(false); $('pHint').textContent='여기서 마칩니다. '+(total-remaining>=30?'기록에 남겼습니다.':''); $('pControls').hidden=true; $('pRestart').hidden=true; $('pDone').hidden=false; render(); });
+$('stopBtn').addEventListener('click',()=>{ endSession(false); $('pHint').textContent='여기서 마칩니다. '+(total-remaining>=30?'기록에 남겼습니다.':''); $('pControls').hidden=true; $('pSub').hidden=true; $('pDone').hidden=false; render(); });
 $('homeBtn').addEventListener('click',()=>tab('home'));
 $('againBtn').addEventListener('click',()=>startSession(cur.id));
 $('pRestart').addEventListener('click',()=>{ if(cur) startSession(cur.id); });
@@ -1732,6 +1735,7 @@ $('rPause').addEventListener('click',()=>{ const r=runState; if(!r) return; r.pa
   if(r.paused){ clearTimeout(r.sp); hush(); r.speaking=false; } else speakStep();
   renderRun(false); });
 $('rNext').addEventListener('click',()=>{ if(!runState) return; if(runState.count>0){ beginSteps(); return; } stepTo(runState.i+1); });
+$('rStop').addEventListener('click',()=>{ if(runState) finishRun(); });
 $('rRestart').addEventListener('click',()=>{ const r=runState; if(!r) return; const id=r.p.id; clearTimeout(r.sp); hush(); r.speaking=false; startRun(id,true); });
 $('rPrev').addEventListener('click',()=>{ if(runState&&!(runState.count>0)) stepTo(runState.i-1); });
 
@@ -1857,7 +1861,7 @@ function suMark(scroll){
   $('suText').classList.toggle('live',su.playing);
   $('suPos').textContent=`${B().pos(C())} · ${su.i+1} / ${els.length} ${B().unit||'마디'}`;
   $('suMode').textContent=B().has(C())?'녹음과 함께 읽기':'글자만 천천히 넘김';
-  $('suPlay').textContent=su.playing?'멈춤':(su.touched?'이어 듣기':'듣기');
+  $('suPlay').textContent=su.playing?'일시정지':(su.touched?'이어 듣기':'듣기');
   if(scroll&&els[su.i]) els[su.i].scrollIntoView({block:'center',behavior:'smooth'});
   suPosAll[su.book]={ch:su.ch,i:su.i}; save('sutraPos2',suPosAll);
 }
@@ -1927,6 +1931,7 @@ function suSwitch(k){ // 분 바꾸기 / 한자·한글 바꾸기
   if(k<0||k>=B().chs.length||k===su.ch) return;
   const was=su.playing; suStop(); su.ch=k; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0}); if(was) suPlay();
 }
+$('suEnd').addEventListener('click',()=>{ const was=su.playing||su.touched; suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); if(was) toast('여기서 마칩니다.'); });
 $('suRestart').addEventListener('click',()=>{ suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); suPlay(); });
 $('suPlay').addEventListener('click',()=>{ su.playing?suStop():suPlay(); });
 $('phPrev').addEventListener('click',()=>suGoto(su.i-1,true));
