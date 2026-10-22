@@ -240,7 +240,7 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .mm summary:hover{background:var(--moss-soft)}
 .mi{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:var(--moss-soft)}
 .mi svg{width:30px;height:30px}
-.mi-listen{color:var(--brass)} .mi-mind{color:var(--lotus)} .mi-sutra{color:var(--moss)}
+.mi-listen{color:var(--brass)} .mi-mind{color:var(--lotus)} .mi-sutra{color:var(--moss)} .mi-juryeon{color:var(--brass)}
 .mt{display:flex;flex-direction:column;min-width:0}
 .mt b{font-family:var(--serif);font-size:19px}
 .mt small{font-size:13px;color:var(--muted)}
@@ -464,9 +464,17 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <summary>
           <span class="mi mi-sutra" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
             <path d="M4 8c4-1.5 8-1.5 12 1 4-2.5 8-2.5 12-1v16c-4-1.5-8-1.5-12 1-4-2.5-8-2.5-12-1z"/><path d="M16 9v16"/><path d="M8 13h4M8 17h4M20 13h4M20 17h4"/></svg></span>
-          <span class="mt"><b>경전읽기</b><small>반야심경 · 금강경 · 법성게 외</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <span class="mt"><b>경전읽기</b><small>반야심경 · 금강경 · 법성게 · 천수경</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
         </summary>
-        <div class="mm-body"><div class="rows" id="sutraRows"></div></div>
+        <div class="mm-body" id="sutraBody"></div>
+      </details>
+      <details class="mm" data-mm="juryeon">
+        <summary>
+          <span class="mi mi-juryeon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M4 6h24M6 6l-1.5 3M26 6l1.5 3"/><path d="M9 9v19M23 9v19"/><rect x="13.5" y="10" width="5" height="15" rx=".6"/><path d="M16 13v2M16 18v2"/></svg></span>
+          <span class="mt"><b>사찰의 주련</b><small>법당 기둥의 글귀 · 7분류 176편</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </summary>
+        <div class="mm-body"><div class="rows" id="jrRows"></div></div>
       </details>
     </nav>
   </section>
@@ -1409,11 +1417,6 @@ const SUTRAS=[
   ['천수경','관세음보살의 자비를 기리는 독송 경전',SV('<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V5a1.5 1.5 0 0 1 3 0v6M14 11V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7-2.4 0-3.9-1.4-5.3-3.8L4.2 14.6a1.5 1.5 0 0 1 2.5-1.6L8 14.5"/>','si-lotus')],
   ['사찰의 주련','법당 기둥에 걸린 글귀 읽기',SV('<path d="M3 4h18M5 4l-1 2M19 4l1 2"/><path d="M7 6v15M17 6v15"/><rect x="10" y="7" width="4" height="11" rx=".5"/><path d="M12 9v1.5M12 12.5V14"/>','si-moss')]];
 const SUTRA_READY={'반야심경':'한자 · 한글','금강경':'32분 · 읽기','법성게':'30구 · 읽기','천수경':'9장 · 읽기','사찰의 주련':'176편 · 읽기'};
-$('sutraRows').innerHTML=SUTRAS.map(([t,d,ic])=>`<button class="prow srow${SUTRA_READY[t]?' ready':''}" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">${SUTRA_READY[t]?SUTRA_READY[t]:'준비 중'}</span></button>`).join('');
-document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',()=>{
-  if(SUTRA_READY[b.dataset.sutra]){ suOpen(b.dataset.sutra); go({name:'sutra',book:b.dataset.sutra}); return; }
-  toast(b.dataset.sutra+(((b.dataset.sutra.slice(-1).charCodeAt(0)-0xAC00)%28)?'은':'는')+' 준비 중입니다.');
-}));
 // 펼침 상태 기억
 // 메뉴는 늘 접힌 채로 시작하고, 하나를 펼치면 같은 층의 다른 메뉴는 접힘
 document.querySelectorAll('.mm,.sub').forEach(d=>{
@@ -2013,6 +2016,25 @@ $('chSel').addEventListener('change',e=>suSwitch(+e.target.value));
 $('chPrev').addEventListener('click',()=>suSwitch(su.ch-1));
 $('chNext').addEventListener('click',()=>suSwitch(su.ch+1));
 document.querySelectorAll('[data-sz]').forEach(b=>b.addEventListener('click',()=>{ settings.suz=+b.dataset.sz; save('settings',settings); renderSutra(); }));
+
+// 경전읽기: 반야심경·금강경·법성게는 바로 열고, 천수경은 장 목차를 펼쳐 고름
+const SV_CHEV=ICON.chev;
+const sutraBtn=([t,d,ic])=>`<button class="prow srow${SUTRA_READY[t]?' ready':''}" data-sutra="${t}">${ic}<span><h4>${t}</h4><p>${d}</p></span><span class="soon">${SUTRA_READY[t]?SUTRA_READY[t]:'준비 중'}</span></button>`;
+const TOC_BOOKS={'천수경':1};
+$('sutraBody').innerHTML='<div class="rows">'+SUTRAS.filter(s=>s[0]!=='사찰의 주련'&&!TOC_BOOKS[s[0]]).map(sutraBtn).join('')+'</div>'+
+  SUTRAS.filter(s=>TOC_BOOKS[s[0]]).map(([t,d,ic])=>`<details class="sub" data-mm="toc-${t}"><summary>${ic}<b>${t}</b><small>${BOOKS[t].chs.length}장</small><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></summary><div class="rows">`+
+    BOOKS[t].chs.map((c,k)=>`<button class="prow" data-toc="${t}|${k}"><span class="pebble">${k+1}</span><span><h4>${c.title}</h4><p>${c.paras[0].length}칸</p></span>${SV_CHEV}</button>`).join('')+'</div></details>').join('');
+// 사찰의 주련: 메인 메뉴에서 분류를 바로 고름
+$('jrRows').innerHTML=JURYEON.map((c,k)=>`<button class="prow" data-toc="사찰의 주련|${k}"><span class="pebble">${k+1}</span><span><h4>${c.title}</h4><p>${c.paras[0].length}편</p></span>${SV_CHEV}</button>`).join('');
+function suOpenAt(book,k){ suOpen(book); if(su.ch!==k){ su.ch=k; su.i=0; su.touched=false; } go({name:'sutra',book}); }
+document.querySelectorAll('[data-toc]').forEach(b=>b.addEventListener('click',()=>{ const [bk,k]=b.dataset.toc.split('|'); suOpenAt(bk,+k); }));
+document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',()=>{
+  if(SUTRA_READY[b.dataset.sutra]){ suOpen(b.dataset.sutra); go({name:'sutra',book:b.dataset.sutra}); return; }
+  toast(b.dataset.sutra+(((b.dataset.sutra.slice(-1).charCodeAt(0)-0xAC00)%28)?'은':'는')+' 준비 중입니다.');
+}));
+// 새로 만든 목차도 같은 아코디언 규칙(처음엔 접힘, 하나 펼치면 같은 층 다른 것은 접힘)
+document.querySelectorAll('#sutraBody>details.sub').forEach(d=>{ d.open=false;
+  d.addEventListener('toggle',()=>{ if(!d.open) return; d.parentElement.querySelectorAll(':scope>details').forEach(o=>{ if(o!==d) o.open=false; }); }); });
 
 /* ---------- 글자 크기 ---------- */
 function applyFs(){ document.body.style.zoom=settings.fs||1; }
