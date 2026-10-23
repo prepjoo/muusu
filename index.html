@@ -1571,7 +1571,8 @@ function speak(text,onend){
 }
 // 녹음된 나레이션 (audio/<수련>-<번호>.mp3). 녹음이 있는 수련은 기기 음성 대신 녹음을 재생
 const REC={still:9,listen:7,thoughts:8,feelings:9,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,metta:10,joy:5};
-const recUrl=(id,i)=>`audio/${id}-${String(i).padStart(2,'0')}.mp3`;
+const AV='32'; // 녹음을 바꿔 올릴 때마다 숫자를 올려 예전 저장본을 쓰지 않게 함
+const recUrl=(id,i)=>`audio/${id}-${String(i).padStart(2,'0')}.mp3?v=${AV}`;
 const lineNo=(p,text)=>[...new Set(p.steps.map(s=>s.t))].indexOf(text)+1;
 function hasRec(p){ return !!(p&&REC[p.id]&&settings.voice); }
 const bufCache={}; let recSrc=null;
@@ -1877,20 +1878,20 @@ const BOOKS={
   '금강경':{han:'金剛般若波羅蜜經',chs:GEUMGANG,tabs:false,chain:true,lines:false,
     label:c=>`제${c.no}분 ${c.title}`, pos:c=>`제${c.no}분`,
     has:c=>SUTRA_AUDIO.includes(c.no), cues:c=>SUTRA_CUES[c.no],
-    src:c=>`audio/geumgang-${String(c.no).padStart(2,'0')}.mp3`, end:'금강반야바라밀경 마침'},
+    src:c=>`audio/geumgang-${String(c.no).padStart(2,'0')}.mp3?v=${AV}`, end:'금강반야바라밀경 마침'},
   '반야심경':{han:'摩訶般若波羅蜜多心經',chs:HEART,tabs:true,chain:false,
     label:c=>c.title, pos:c=>c.tab,
     has:c=>HEART_AUDIO.includes(c.key), cues:c=>HEART_CUES[c.key],
-    src:c=>`audio/banya-${c.key}.mp3`, end:''},
+    src:c=>`audio/banya-${c.key}.mp3?v=${AV}`, end:''},
   '법성게':{han:'法性偈',chs:[{key:'bs',title:'법성게',paras:[BEOPSEONG]}],tabs:false,chain:false,
     label:c=>c.title, pos:c=>'법성게', has:c=>BS_AUDIO, cues:c=>BS_CUES,
-    src:c=>'audio/beopseong.mp3', end:'의상대사 법성게 마침', unit:'구'},
+    src:c=>`audio/beopseong.mp3?v=${AV}`, end:'의상대사 법성게 마침', unit:'구'},
   '사찰의 주련':{han:'寺刹柱聯',chs:JURYEON,tabs:false,chain:true,
     label:c=>c.title, pos:c=>c.title, has:c=>JR_AUDIO.includes(c.no), cues:c=>JR_CUES[c.no],
-    src:c=>`audio/juryeon-${c.no}.mp3`, end:'', unit:'편'},
+    src:c=>`audio/juryeon-${c.no}.mp3?v=${AV}`, end:'', unit:'편'},
   '천수경':{han:'千手經',chs:CHEONSU,tabs:false,chain:true,
     label:c=>c.title, pos:c=>c.title, has:c=>CS_AUDIO.includes(c.no), cues:c=>CS_CUES[c.no],
-    src:c=>`audio/cheonsu-${c.no}.mp3`, end:'', unit:'칸'}
+    src:c=>`audio/cheonsu-${c.no}.mp3?v=${AV}`, end:'', unit:'칸'}
 };
 const phT=x=>typeof x==='string'?x:(x.m||x.t);
 let su={book:'금강경',ch:0,i:0,playing:false,timer:null,audio:null};
