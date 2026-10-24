@@ -370,6 +370,13 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .goal i{display:block;height:100%;background:var(--moss);border-radius:999px}
 .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted)}
 .when{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:2px}
+.memo summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 0}
+.memo summary::-webkit-details-marker{display:none}
+.memo summary h3{margin:0}
+.memo .memo-chev{margin-left:auto;width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .2s}
+.memo[open] .memo-chev{transform:rotate(45deg)}
+.memo[open] summary{margin-bottom:12px}
+.clearrow{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 details.flow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
 details.flow summary{cursor:pointer;font-size:14.5px}
 details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
@@ -528,19 +535,20 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="section-head"><h3>기쁨 상자</h3><span class="label">오늘의 작은 기쁨에서 모은 순간</span></div>
       <div class="joybox" id="joyList"></div>
     </div>
-    <div class="section">
-      <div class="section-head"><h3>지난 명상</h3><button class="linkbtn" id="clearBtn">기록 지우기</button></div>
-      <div class="confirm" id="clearConfirm" hidden>
-        <span class="note">이 기기에 저장된 기록을 모두 지울까요?</span>
-        <button class="btn small" id="clearYes">지우기</button>
-        <button class="btn small ghost" id="clearNo">그만두기</button>
-      </div>
+    <details class="section memo" id="memoBox">
+      <summary><h3>감정 메모</h3><span class="note" id="memoCount"></span><span class="memo-chev" aria-hidden="true"></span></summary>
       <ul class="log" id="log"></ul>
-    </div>
+    </details>
     <div class="section" id="suStatSec">
       <div class="section-head"><h3>경전 읽기</h3><span class="note">경전별 누적 시간</span></div>
       <ul class="log" id="suStat"></ul>
     </div>
+    <div class="clearrow"><button class="linkbtn" id="clearBtn">기록 지우기</button>
+      <div class="confirm" id="clearConfirm" hidden>
+        <span class="note">이 기기에 저장된 기록을 모두 지울까요?</span>
+        <button class="btn small" id="clearYes">지우기</button>
+        <button class="btn small ghost" id="clearNo">그만두기</button>
+      </div></div>
     <p class="note">기록은 이 기기의 브라우저에만 저장됩니다. 30초 이상 앉은 명상만 남깁니다.</p>
   </section>
 
@@ -1213,11 +1221,13 @@ function renderRecords(){
     if(x.show) svg+=`<text x="${cx}" y="${H-6}" text-anchor="middle" font-size="${n>12?10:11}" fill="${x.isNow?'var(--ink)':'var(--muted)'}">${x.label}</text>`;
   });
   $('chart').innerHTML=svg+'</svg>';
-  $('log').innerHTML=sessions.length? sessions.slice(0,30).map(s=>{const d=new Date(s.t);
+  // 감정 메모: 마음챙김을 마친 뒤 고른 느낌·메모가 있는 기록만 모아 보여 줌
+  const memos=sessions.filter(s=>s.note&&noteSummary(s.note));
+  $('memoCount').textContent=memos.length?memos.length+'개':'';
+  $('log').innerHTML=memos.length? memos.slice(0,60).map(s=>{const d=new Date(s.t);
     const name=SOUNDS[s.id]?.name||PMAP[s.id]?.title||'';
-    const note=s.note?noteSummary(s.note):'';
-    return `<li><span>${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${esc(name)}${note?`<span class="lognote">${esc(note)}</span>`:''}</span><span class="muted">${s.sec<60?s.sec+'초':fmtMin(s.sec)}</span></li>`}).join('')
-    : '<li class="empty">아직 기록이 없습니다. 홈에서 듣기명상이나 마음챙김을 하나 골라 시작해 보세요.</li>';
+    return `<li><span>${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${esc(name)}<span class="lognote">${esc(noteSummary(s.note))}</span></span><span class="muted">${s.sec<60?s.sec+'초':fmtMin(s.sec)}</span></li>`}).join('')
+    : '<li class="empty">아직 감정 메모가 없습니다. 마음챙김을 마친 뒤 느낌을 고르거나 한 줄 메모를 남기면 여기에 모입니다.</li>';
   const joys=sessions.filter(s=>s.id==='joy'&&s.note&&s.note.moment);
   $('joySection').hidden=!joys.length;
   $('joyList').innerHTML=joys.slice(0,12).map(s=>{const d=new Date(s.t);
