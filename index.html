@@ -927,7 +927,7 @@ setInterval(()=>{ if(route.name==='home') renderHome(); },60000);
 function renderHome(){
   const d=new Date(), h=d.getHours();
   $('hDate').textContent=d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
-  $('hGreet').textContent= h<5?'고요한 새벽입니다': h<11?'맑은 아침입니다': h<17?'편안한 오후입니다': h<21?'고요한 저녁입니다':'깊은 밤입니다';
+  $('hGreet').textContent= h<5?'고요한 새벽입니다': h<11?'새로운 아침입니다': h<17?'편안한 오후입니다': h<21?'고요한 저녁입니다':'깊은 밤입니다';
   document.querySelector('#v-home .hello').dataset.tod= h<5?'dawn': h<11?'morning': h<17?'noon': h<21?'evening':'night';
   $('hTod').textContent= h<5?'새벽': h<11?'아침': h<17?'오후': h<21?'저녁':'밤';
   const dayNo=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
