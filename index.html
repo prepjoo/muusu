@@ -1032,14 +1032,22 @@ function mallet(t,freq,amt){
 function bowlStrike(t){ strike(t,[[1,.55,30,1.0],[2.76,.30,22,1.7],[5.4,.12,12],[8.9,.05,6]],220,1); mallet(t,2400,.06); }
 function bellStrike(t){ strike(t,[[.38,.30,30,.33],[1,.60,28,.35],[1.36,.22,20],[2.0,.30,16,.6],[2.52,.16,12],[3.0,.12,9],[4.07,.07,6],[5.4,.04,4]],168,1); mallet(t,900,.35); }
 function thunder(t){
-  const s=ctx.createBufferSource(); s.buffer=_noise; s.loop=true; s.loopStart=Math.random()*2;
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.Q.value=.8;
-  f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(160,t+6);
-  const f2=ctx.createBiquadFilter(); f2.type='lowpass'; f2.frequency.value=900;
-  const g=ctx.createGain(), k=.55+Math.random()*.3;
-  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(.55*k,t+.8); g.gain.linearRampToValueAtTime(.25*k,t+1.7);
-  g.gain.linearRampToValueAtTime(.65*k,t+2.5); g.gain.linearRampToValueAtTime(.30*k,t+3.6); g.gain.exponentialRampToValueAtTime(0.0001,t+7);
-  s.connect(f).connect(f2).connect(g).connect(master); s.start(t); s.stop(t+7.2);
+  // 휴대폰 스피커는 아주 낮은 소리를 잘 못 내므로, 낮은 울림에 더해 중간 음역의 '우르르' 몸통을 함께 냄
+  const k=.8+Math.random()*.3, src=()=>{ const s=ctx.createBufferSource(); s.buffer=_noise; s.loop=true; s.loopStart=Math.random()*2; return s; };
+  const env=(g,a)=>{ g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(a*k,t+.6); g.gain.linearRampToValueAtTime(a*.5*k,t+1.5);
+    g.gain.linearRampToValueAtTime(a*1.1*k,t+2.3); g.gain.linearRampToValueAtTime(a*.55*k,t+3.6); g.gain.exponentialRampToValueAtTime(0.0001,t+7.5); };
+  // 낮은 울림
+  const s1=src(), f1=ctx.createBiquadFilter(); f1.type='lowpass'; f1.Q.value=.8;
+  f1.frequency.setValueAtTime(1200,t); f1.frequency.exponentialRampToValueAtTime(220,t+6.5);
+  const g1=ctx.createGain(); env(g1,1.6); s1.connect(f1).connect(g1).connect(master); s1.start(t); s1.stop(t+7.7);
+  // 중간 음역 몸통 (작은 스피커에서도 들리게)
+  const s2=src(), f2=ctx.createBiquadFilter(); f2.type='bandpass'; f2.Q.value=.9;
+  f2.frequency.setValueAtTime(900,t); f2.frequency.exponentialRampToValueAtTime(320,t+6);
+  const g2=ctx.createGain(); env(g2,1.5); s2.connect(f2).connect(g2).connect(master); s2.start(t); s2.stop(t+7.7);
+  // 가끔 처음에 '쩍' 하고 갈라지는 소리
+  if(Math.random()<.5){ const s3=src(), f3=ctx.createBiquadFilter(); f3.type='bandpass'; f3.frequency.value=2200; f3.Q.value=.6;
+    const g3=ctx.createGain(); g3.gain.setValueAtTime(0.0001,t); g3.gain.linearRampToValueAtTime(.35*k,t+.05); g3.gain.exponentialRampToValueAtTime(0.0001,t+.7);
+    s3.connect(f3).connect(g3).connect(master); s3.start(t); s3.stop(t+.8); }
 }
 function startRain(t){
   const layer=(type,freq,q,gain)=>{
