@@ -1885,7 +1885,9 @@ const BOOKS={
   '금강경':{han:'金剛般若波羅蜜經',chs:GEUMGANG,tabs:false,chain:true,lines:false,
     label:c=>`제${c.no}분 ${c.title}`, pos:c=>`제${c.no}분`,
     has:c=>SUTRA_AUDIO.includes(c.no), cues:c=>SUTRA_CUES[c.no],
-    src:c=>`audio/geumgang-${String(c.no).padStart(2,'0')}.mp3?v=${AV}`, end:'금강반야바라밀경 마침'},
+    src:c=>`audio/geumgang-${String(c.no).padStart(2,'0')}.mp3?v=${AV}`, end:'금강반야바라밀경 마침',
+    // 32분을 한 파일로 이어 들려줌 (분이 바뀔 때 끊기지 않게). off = 각 분이 시작하는 초
+    one:{src:`audio/geumgang.mp3?v=${AV}`, off:[0.0, 37.022, 111.913, 165.082, 233.532, 266.859, 398.112, 438.212, 493.411, 645.053, 725.622, 788.373, 829.263, 946.373, 1239.57, 1363.7, 1450.24, 1701.93, 1814.49, 1851.99, 1907.12, 1965.16, 1997.64, 2031.35, 2070.93, 2122.36, 2179.91, 2225.42, 2273.3, 2299.38, 2381.94, 2457.76]}},
   '반야심경':{han:'摩訶般若波羅蜜多心經',chs:HEART,tabs:true,chain:false,
     label:c=>c.title, pos:c=>c.tab,
     has:c=>HEART_AUDIO.includes(c.key), cues:c=>HEART_CUES[c.key],
@@ -1928,6 +1930,7 @@ function renderSutra(){
   $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>verse?'<div class="vs-list">'+p.map(one).join('')+'</div>':'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
     (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
+  { const rb=$('suRestart'), tn=[...rb.childNodes].reverse().find(x=>x.nodeType===3); if(tn) tn.textContent=bk.chs.length>1&&!bk.tabs?'이 장 다시 듣기':'처음부터'; }
   $('suText').style.setProperty('--suz',settings.suz2||0.85);
   document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz2||0.85))));
   suMark(false);
@@ -1952,9 +1955,10 @@ function phraseTimes(dur){ // 마디마다 시작 시각
   const ls=FL().map(t=>phT(t).length+12), tot=ls.reduce((a,b)=>a+b,0); let acc=0;
   return ls.map(l=>{ const t=acc/tot*dur; acc+=l; return t; });
 }
+const suOff=()=>B().one?B().one.off[su.ch]:0; // 한 파일로 듣는 경전에서 지금 분이 시작하는 자리
 function suGoto(i,user){
   const n=FL().length; su.i=Math.max(0,Math.min(n-1,i)); su.touched=true;
-  if(su.playing&&su.usingAudio&&suEl&&suEl.duration){ suEl.currentTime=phraseTimes(suEl.duration)[su.i]; }
+  if(su.playing&&su.usingAudio&&suEl&&suEl.duration){ suEl.currentTime=suOff()+phraseTimes(suEl.duration)[su.i]; }
   else if(su.playing){ clearTimeout(su.timer); suTick(); }
   suMark(true);
 }
@@ -1979,9 +1983,15 @@ function suAudio(){
   suEl.addEventListener('timeupdate',()=>{
     if(!su.playing||!suEl.duration) return;
     if(suEl.currentTime>0) su.lastT=suEl.currentTime;
+    const bo=B().one;
+    if(bo&&!su.switching){ const t=suEl.currentTime; let c=su.ch; // 한 파일 안에서 다음 분으로 넘어가면 화면도 그 분으로
+      while(c+1<bo.off.length&&t>=bo.off[c+1]-.05) c++;
+      while(c>0&&t<bo.off[c]-.5) c--;
+      if(c!==su.ch){ su.ch=c; su.i=0; renderSutra(); } }
+    const now=suEl.currentTime-suOff();
     const ts=phraseTimes(suEl.duration); let k=0;
     const lead=C().key==='bs'?1.2:.15; // 법성게는 낭독보다 조금 먼저 한문·음이 떠오르게
-    while(k+1<ts.length&&ts[k+1]<=suEl.currentTime+lead) k++;
+    while(k+1<ts.length&&ts[k+1]<=now+lead) k++;
     if(k!==su.i){ su.i=k; suMark(true); }
   });
   suEl.addEventListener('ended',()=>{
@@ -2006,12 +2016,12 @@ function suAudio(){
   return suEl;
 }
 function suStartAudio(fromStart){
-  const a=suAudio(), src=B().src(C());
+  const a=suAudio(), src=B().one?B().one.src:B().src(C());
   su.usingAudio=true; su.audio=a;
   a.volume=Math.min(1,settings.volume/100*.9+.1);
-  const seek=()=>{ const ts=phraseTimes(a.duration||0); a.currentTime=fromStart&&su.i===0?0:(ts[su.i]||0); };
+  const seek=()=>{ const ts=phraseTimes(a.duration||0); a.currentTime=suOff()+(fromStart&&su.i===0?0:(ts[su.i]||0)); };
   if(!a.src.endsWith(src)){ su.switching=true; a.src=src; a.addEventListener('loadedmetadata',seek,{once:true}); }
-  else seek();
+  else { if(a.paused) su.switching=true; seek(); } // 방금 멈춘 소리의 '멈춤' 알림이 늦게 와서 다시 멈추지 않게
   a.play().catch(suPlayFail);
 }
 function suPlayFail(err){
@@ -2022,7 +2032,7 @@ function suPlayFail(err){
 }
 let suWarmed={};
 function suWarmNext(){ // 금강경: 다음 분 녹음을 미리 받아 두어 분이 바뀔 때 끊김이 없게
-  const bk=B(); if(!bk.chain||su.ch>=bk.chs.length-1) return;
+  const bk=B(); if(bk.one||!bk.chain||su.ch>=bk.chs.length-1) return;
   const nx=bk.chs[su.ch+1]; if(!bk.has(nx)) return; const u=bk.src(nx);
   if(suWarmed[u]) return; suWarmed[u]=1;
   setTimeout(()=>{ try{ fetch(u).then(r=>r.blob()).catch(()=>{ delete suWarmed[u]; }); }catch(e){} },4000);
