@@ -537,6 +537,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       </div>
       <ul class="log" id="log"></ul>
     </div>
+    <div class="section" id="suStatSec" hidden>
+      <div class="section-head"><h3>경전 읽기</h3><span class="note">경전별 누적 시간</span></div>
+      <ul class="log" id="suStat"></ul>
+    </div>
     <p class="note">기록은 이 기기의 브라우저에만 저장됩니다. 30초 이상 앉은 명상만 남깁니다.</p>
   </section>
 
@@ -872,6 +876,14 @@ if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(setti
 const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
 let sessions=load('sessions',[]);   // {t, id, sec}
 const MAX_SESS=5000; // 한 해 넘게 쌓여도 연간 기록·연속 일수가 잘리지 않게
+let suTime=load('sutraTime',{});   // {경전: {sec, last}} 경전 읽기 누적 (명상 기록과 따로)
+let suT0=0;
+function suFlush(){ // 듣고 있던 시간을 경전별 누적에 더함
+  if(!suT0) return; const now=Date.now(), d=Math.min(120,(now-suT0)/1000); suT0=su&&su.playing?now:0;
+  if(d<=0||!su||!su.book) return;
+  const x=suTime[su.book]||{sec:0,last:0}; x.sec+=d; x.last=now; suTime[su.book]=x; save('sutraTime',suTime);
+}
+setInterval(()=>{ if(typeof su==='undefined') return; if(su.playing){ if(suT0) suFlush(); else suT0=Date.now(); } else if(suT0) suFlush(); },5000);
 function addSession(x){ sessions.unshift(x); sessions=sessions.slice(0,MAX_SESS); save('sessions',sessions); }
 let last=load('last',null);         // {id, min}
 const chosen={bowl:SOUNDS.bowl.def,bell:SOUNDS.bell.def,lotus:SOUNDS.lotus.def};
@@ -1210,12 +1222,16 @@ function renderRecords(){
   $('joySection').hidden=!joys.length;
   $('joyList').innerHTML=joys.slice(0,12).map(s=>{const d=new Date(s.t);
     return `<div class="joy"><span class="label num">${d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})}</span><b>${esc(s.note.moment)}</b>${s.note.feel&&s.note.feel.length?`<span class="lognote">${esc(s.note.feel.join(', '))}</span>`:''}</div>`}).join('');
-  $('clearBtn').hidden=!sessions.length; $('clearConfirm').hidden=true;
+  { const order=['반야심경','금강경','법성게','천수경','사찰의 주련'], rows=order.filter(k=>suTime[k]&&suTime[k].sec>=1);
+    $('suStatSec').hidden=!rows.length;
+    $('suStat').innerHTML=rows.map(k=>{ const x=suTime[k], d=new Date(x.last);
+      return `<li><span>${esc(k)}<span class="lognote">마지막으로 읽은 날 ${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})}</span></span><span class="muted">${x.sec<60?Math.round(x.sec)+'초':fmtMin(x.sec)}</span></li>`; }).join(''); }
+  $('clearBtn').hidden=!sessions.length&&!Object.keys(suTime).length; $('clearConfirm').hidden=true;
 }
 document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click',()=>{settings.period=b.dataset.period;save('settings',settings);renderRecords();}));
 $('clearBtn').addEventListener('click',()=>{$('clearConfirm').hidden=false;$('clearBtn').hidden=true});
 $('clearNo').addEventListener('click',renderRecords);
-$('clearYes').addEventListener('click',()=>{sessions=[];save('sessions',sessions);renderRecords()});
+$('clearYes').addEventListener('click',()=>{sessions=[];save('sessions',sessions);suTime={};save('sutraTime',suTime);renderRecords()});
 
 /* ---------- 설정 ---------- */
 function renderSettings(){
@@ -2022,7 +2038,7 @@ function suAudio(){
   suEl.addEventListener('playing',()=>{ su.retry=0; su.switching=false; if(su.playing) suMark(false); suWarmNext(); });
   suEl.addEventListener('waiting',()=>{ if(su.playing) $('suMode').textContent='녹음 불러오는 중…'; });
   // 전화·다른 앱·화면 꺼짐 등으로 휴대폰이 소리를 멈추면 화면도 '이어 듣기'로 맞춤
-  suEl.addEventListener('pause',()=>{ if(su.playing&&su.usingAudio&&!su.switching&&!suEl.ended){ su.playing=false; clearTimeout(su.timer); suWakeOff(); suMark(false); } });
+  suEl.addEventListener('pause',()=>{ if(su.playing&&su.usingAudio&&!su.switching&&!suEl.ended){ su.playing=false; suFlush(); clearTimeout(su.timer); suWakeOff(); suMark(false); } });
   return suEl;
 }
 function suStartAudio(fromStart){
@@ -2052,12 +2068,12 @@ async function suWakeOn(){ if(settings.wake&&!suWake){ try{ suWake=await navigat
 function suWakeOff(){ try{ suWake?.release(); }catch(e){} suWake=null; }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&su.playing){ suWake=null; suWakeOn(); } });
 function suPlay(){
-  unlockAudio(); su.playing=true; su.touched=true; su.retry=0; suWakeOn();
+  unlockAudio(); if(!su.playing) suT0=Date.now(); su.playing=true; su.touched=true; su.retry=0; suWakeOn();
   if(B().has(C())) suStartAudio(su.i===0); else { su.usingAudio=false; suTick(); }
   suMark(true);
 }
 function suStop(){
-  su.playing=false; clearTimeout(su.timer); suWakeOff();
+  su.playing=false; clearTimeout(su.timer); suWakeOff(); suFlush();
   if(suEl){ try{ suEl.pause(); }catch(e){} }
   if(!$('v-sutra').hidden) suMark(false);
 }
