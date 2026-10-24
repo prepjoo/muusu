@@ -370,6 +370,7 @@ details.flow{background:var(--surface);border:1px solid var(--line);border-radiu
 details.flow summary{cursor:pointer;font-size:14.5px}
 details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
 .big-pebble{width:46%;max-width:220px}
+@media (max-width:600px){#v-practice .hero-art{aspect-ratio:16/9}#v-practice .hero-art .big-pebble{width:36%}}
 .big-pebble svg{width:100%;height:auto}
 
 /* 안내 진행 */
@@ -653,9 +654,9 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <span class="label">시간</span>
       <div class="chips" id="prChips" role="group" aria-label="시간"></div>
     </div>
+    <button class="btn" id="prStart">시작하기</button>
     <div class="meta num" id="prMeta"></div>
     <details class="flow"><summary>흐름 미리 보기</summary><ol id="prFlow"></ol></details>
-    <button class="btn" id="prStart">시작하기</button>
   </section>
 
   <!-- 마음챙김 진행 -->
@@ -687,7 +688,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <div class="su-head">
       <span class="label su-han" id="suHan">金剛般若波羅蜜經</span>
       <div class="su-tabs" id="suTabs" role="group" aria-label="읽기 고르기" hidden></div>
-      <div class="su-size" role="group" aria-label="글자 크기"><button class="chip" data-sz="1">가</button><button class="chip" data-sz="1.15">가</button><button class="chip" data-sz="1.3">가</button></div>
+      <div class="su-size" role="group" aria-label="글자 크기"><button class="chip" data-sz="0.85" aria-label="작게">가</button><button class="chip" data-sz="1" aria-label="보통">가</button><button class="chip" data-sz="1.15" aria-label="크게">가</button></div>
       <div class="su-nav" id="suNav">
         <button class="iconbtn" id="chPrev" aria-label="이전 분"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
         <label class="sr" for="chSel">분 고르기</label>
@@ -1241,39 +1242,39 @@ const W=(t,w,o)=>Object.assign({t,w},o||{});   // 시간에 비례해 늘어나�
 const D=(t,d,o)=>Object.assign({t,d},o||{});   // 정해진 초
 
 const PRACTICES=[
- {id:'still',no:1,group:'앉아서',title:'숨 사이의 쉼',sub:'아랫배에 두 손을 모으고',visual:'breath',mins:[3,5,10],def:5,
+ {id:'still',no:1,group:'앉아서',title:'숨 사이의 쉼',sub:'아랫배에 두 손을 모으고',visual:'breath',mins:null,
   when:'하루를 시작할 때, 마음이 바쁠 때, 다른 수련을 하기 전에.',
   steps:[
-   W('편안하게 앉습니다. 허리는 곧게, 어깨는 내려놓고, 눈은 감거나 앞쪽 바닥에 시선을 둡니다.',1),
-   W('두 손을 포개어 엄지 끝을 살며시 맞대고, 아랫배 앞에 둡니다. 누워 있다면 한 손을 배 위에 올려도 좋습니다.',1),
-   W('숨이 들어오고 나가는 것을 그대로 느껴 보세요.',2),
-   W('들숨에 아랫배가 손 쪽으로 부풀고, 날숨에 천천히 가라앉습니다.',2),
-   W('숨이 길면 길다고, 짧으면 짧다고 알아차립니다.',2),
-   W('이제 들숨과 날숨 사이, 아주 짧은 멈춤에 주의를 기울여 보세요.',2),
-   W('숨을 참지 않아도 됩니다. 숨은 저절로 오가고, 그 사이의 짧은 쉼은 늘 여기 있습니다.',3),
-   W('마음이 다른 곳에 가 있으면, 알아차리고 부드럽게 숨으로 돌아옵니다.',3),
-   W('천천히 세 번 숨을 쉬고, 준비가 되면 눈을 뜹니다.',1)]},
- {id:'listen',no:2,group:'앉아서',title:'소리에 귀 기울이기',sub:'싱잉볼로 열고 닫는 듣기 수련',visual:'pebble',mins:[3,5],def:3,
+   D('편안하게 앉습니다. 허리는 곧게, 어깨는 내려놓고, 눈은 감거나 앞쪽 바닥에 시선을 둡니다.',18),
+   D('두 손을 포개어 엄지 끝을 살며시 맞대고, 아랫배 앞에 둡니다. 누워 있다면 한 손을 배 위에 올려도 좋습니다.',18),
+   D('숨이 들어오고 나가는 것을 그대로 느껴 보세요.',35),
+   D('들숨에 아랫배가 손 쪽으로 부풀고, 날숨에 천천히 가라앉습니다.',35),
+   D('숨이 길면 길다고, 짧으면 짧다고 알아차립니다.',35),
+   D('이제 들숨과 날숨 사이, 아주 짧은 멈춤에 주의를 기울여 보세요.',35),
+   D('숨을 참지 않아도 됩니다. 숨은 저절로 오가고, 그 사이의 짧은 쉼은 늘 여기 있습니다.',53),
+   D('마음이 다른 곳에 가 있으면, 알아차리고 부드럽게 숨으로 돌아옵니다.',53),
+   D('천천히 세 번 숨을 쉬고, 준비가 되면 눈을 뜹니다.',18)]},
+ {id:'listen',no:2,group:'앉아서',title:'소리에 귀 기울이기',sub:'싱잉볼로 열고 닫는 듣기 수련',visual:'pebble',mins:null,
   when:'주변이 시끄러울 때, 생각이 많아 집중이 안 될 때.',
   steps:[
    D('편안히 앉아 눈을 감으세요. 곧 싱잉볼이 한 번 울립니다.',8),
-   W('울림이 점점 작아지는 것을 끝까지 따라가 보세요. 소리가 사라지는 순간을 알아차려 봅니다.',3,{chime:'none',chimeAfter:'long'}),
-   W('이제 방 안의 소리를 들어 봅니다. 시계, 냉장고, 옷깃이 스치는 소리.',3),
-   W('귀를 넓혀 방 밖의 소리를 들어 봅니다. 멀리 있는 소리, 가까이 있는 소리.',3),
-   W('내 몸에서 나는 소리도 들어 봅니다. 숨소리, 침 삼키는 소리.',2),
-   W('소리와 소리 사이, 그 뒤에 깔린 고요를 들어 보세요.',3),
+   D('울림이 점점 작아지는 것을 끝까지 따라가 보세요. 소리가 사라지는 순간을 알아차려 봅니다.',32,{chime:'none',chimeAfter:'long'}),
+   D('이제 방 안의 소리를 들어 봅니다. 시계, 냉장고, 옷깃이 스치는 소리.',32),
+   D('귀를 넓혀 방 밖의 소리를 들어 봅니다. 멀리 있는 소리, 가까이 있는 소리.',32),
+   D('내 몸에서 나는 소리도 들어 봅니다. 숨소리, 침 삼키는 소리.',21),
+   D('소리와 소리 사이, 그 뒤에 깔린 고요를 들어 보세요.',32),
    D('싱잉볼이 다시 울립니다. 마지막 울림이 사라질 때까지 들어 보세요.',24,{chime:'none',chimeAfter:'long'})]},
- {id:'thoughts',no:3,group:'앉아서',title:'생각 거품 바라보기',sub:'떠오르는 생각을 거품처럼 지켜보고 놓아 주기',visual:'breath',mins:[3,5,10],def:5,
+ {id:'thoughts',no:3,group:'앉아서',title:'생각 거품 바라보기',sub:'떠오르는 생각을 거품처럼 지켜보고 놓아 주기',visual:'breath',mins:null,
   when:'같은 생각이 계속 맴돌 때, 잠이 안 올 때.',
   steps:[
-   W('편안히 앉거나 누워, 주의를 숨에 둡니다.',1),
-   W('생각은 비누 거품과 닮았습니다. 생겨나고, 떠다니고, 서로 뭉치고, 결국 터집니다.',2),
-   W('길가에서 퍼레이드를 지켜보듯, 지나가는 생각을 그저 바라봅니다.',3),
-   W('시끄럽고 밝은 생각도, 뒤에 숨은 수줍은 생각도, 자꾸 돌아오는 생각도 있습니다.',3),
-   W('어느새 퍼레이드를 따라가고 있었다면 괜찮습니다. 숨으로 돌아와 다시 길가에 섭니다.',3),
-   W('지금 떠 있는 생각에 이름만 붙이고 놓아 줍니다. 계획, 걱정, 기억.',3),
-   W('생각은 왔다가 갑니다. 생각이 늘 사실은 아닙니다.',2),
-   W('숨을 세 번 쉬고 마칩니다.',1)],
+   D('편안히 앉거나 누워, 주의를 숨에 둡니다.',17),
+   D('생각은 비누 거품과 닮았습니다. 생겨나고, 떠다니고, 서로 뭉치고, 결국 터집니다.',33),
+   D('길가에서 퍼레이드를 지켜보듯, 지나가는 생각을 그저 바라봅니다.',50),
+   D('시끄럽고 밝은 생각도, 뒤에 숨은 수줍은 생각도, 자꾸 돌아오는 생각도 있습니다.',50),
+   D('어느새 퍼레이드를 따라가고 있었다면 괜찮습니다. 숨으로 돌아와 다시 길가에 섭니다.',50),
+   D('지금 떠 있는 생각에 이름만 붙이고 놓아 줍니다. 계획, 걱정, 기억.',50),
+   D('생각은 왔다가 갑니다. 생각이 늘 사실은 아닙니다.',33),
+   D('숨을 세 번 쉬고 마칩니다.',17)],
   form:[
    {key:'count',label:'생각을 짚은 횟수',type:'single',options:['몇 번 안 됐어요','여러 번','셀 수 없이 많이','잘 모르겠어요']},
    {key:'topics',label:'자주 떠오른 생각',type:'multi',options:['계획','걱정','기억','할 일','판단','비교','사람','몸']},
@@ -1447,11 +1448,17 @@ const SUTRAS=[
   ['사찰의 주련','법당 기둥에 걸린 글귀 읽기',SV('<path d="M3 4h18M5 4l-1 2M19 4l1 2"/><path d="M7 6v15M17 6v15"/><rect x="10" y="7" width="4" height="11" rx=".5"/><path d="M12 9v1.5M12 12.5V14"/>','si-moss')]];
 const SUTRA_READY={'반야심경':'한자 · 한글','금강경':'32분 · 읽기','법성게':'30구 · 읽기','천수경':'9장 · 읽기','사찰의 주련':'176편 · 읽기'};
 // 펼침 상태 기억
+function menuToggle(d){
+d.addEventListener('toggle',()=>{ if(!d.open) return;
+  d.parentElement.querySelectorAll(':scope>details').forEach(o=>{ if(o!==d) o.open=false; });
+  // 펼친 세부 메뉴가 화면 아래로 숨으면 제목이 위쪽에 오도록 살짝 올려 줌
+  setTimeout(()=>{ const r=d.getBoundingClientRect(), nb=document.getElementById('tabbar'), vh=window.innerHeight-(nb&&getComputedStyle(nb).position==='fixed'?nb.offsetHeight:0);
+    if(r.bottom>vh-8||r.top<0) window.scrollTo({top:Math.max(0,r.top+window.scrollY-(r.height>vh-80?16:Math.max(16,vh-r.height-24))),behavior:'smooth'}); },60); });
+}
 // 메뉴는 늘 접힌 채로 시작하고, 하나를 펼치면 같은 층의 다른 메뉴는 접힘
 document.querySelectorAll('.mm,.sub').forEach(d=>{
   d.open=false;
-  d.addEventListener('toggle',()=>{ if(!d.open) return;
-    d.parentElement.querySelectorAll(':scope>details').forEach(o=>{ if(o!==d) o.open=false; }); });
+  menuToggle(d);
 });
 
 // 소개 화면
@@ -1921,8 +1928,8 @@ function renderSutra(){
   $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>verse?'<div class="vs-list">'+p.map(one).join('')+'</div>':'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
     (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
-  $('suText').style.setProperty('--suz',settings.suz||1);
-  document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz||1))));
+  $('suText').style.setProperty('--suz',settings.suz2||0.85);
+  document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz2||0.85))));
   suMark(false);
 }
 function suMark(scroll){
@@ -2046,7 +2053,7 @@ $('phNext').addEventListener('click',()=>suGoto(su.i+1,true));
 $('chSel').addEventListener('change',e=>suSwitch(+e.target.value));
 $('chPrev').addEventListener('click',()=>suSwitch(su.ch-1));
 $('chNext').addEventListener('click',()=>suSwitch(su.ch+1));
-document.querySelectorAll('[data-sz]').forEach(b=>b.addEventListener('click',()=>{ settings.suz=+b.dataset.sz; save('settings',settings); renderSutra(); }));
+document.querySelectorAll('[data-sz]').forEach(b=>b.addEventListener('click',()=>{ settings.suz2=+b.dataset.sz; save('settings',settings); renderSutra(); }));
 
 // 경전읽기: 반야심경·금강경·법성게는 바로 열고, 천수경은 장 목차를 펼쳐 고름
 const SV_CHEV=ICON.chev;
@@ -2065,7 +2072,7 @@ document.querySelectorAll('[data-sutra]').forEach(b=>b.addEventListener('click',
 }));
 // 새로 만든 목차도 같은 아코디언 규칙(처음엔 접힘, 하나 펼치면 같은 층 다른 것은 접힘)
 document.querySelectorAll('#sutraBody>details.sub').forEach(d=>{ d.open=false;
-  d.addEventListener('toggle',()=>{ if(!d.open) return; d.parentElement.querySelectorAll(':scope>details').forEach(o=>{ if(o!==d) o.open=false; }); }); });
+  menuToggle(d); });
 
 /* ---------- 글자 크기 ---------- */
 function applyFs(){ document.body.style.zoom=settings.fs||1; }
