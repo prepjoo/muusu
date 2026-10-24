@@ -226,6 +226,9 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .seal{background:transparent;color:var(--seal);border:2px double var(--seal);border-radius:5px;
   padding:2px 7px;font-family:var(--serif);font-weight:700;font-size:12.5px;letter-spacing:.08em;cursor:pointer}
 .seal:hover{background:var(--seal);color:var(--surface)}
+.installchip{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;width:max-content;background:var(--moss-soft);color:var(--moss);border:1px solid var(--moss);border-radius:999px;padding:8px 16px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.installchip svg{width:18px;height:18px}
+.installchip[hidden]{display:none}
 .guide{background:var(--surface);border:2px solid var(--moss);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;font-size:16px;line-height:1.6}
 .guide-title{font-family:var(--serif);font-size:20px}
 .guide ol{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:12px}
@@ -437,6 +440,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <button class="btn" id="openExternal">인터넷 앱으로 열기</button>
       <p class="guide-steps" id="inappSteps"></p>
     </div>
+    <button class="installchip" id="installChip" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 8v6M9.5 11.5L12 14l2.5-2.5"/></svg>휴대폰에 앱으로 설치하기</button>
     <div class="guide" id="installGuide" hidden>
       <b class="guide-title">휴대폰 화면에 무우수 아이콘 만들기</b>
       <div id="installSteps"></div>
@@ -2135,6 +2139,14 @@ function showInstallGuide(){
   $('guideInstall').hidden=!installEvt;
   $('installGuide').hidden=false;
 }
+// 홈 맨 위 '앱으로 설치하기' 버튼: 휴대폰 브라우저(또는 설치할 수 있는 브라우저)에서만, 설치 후에는 숨김
+function showInstallChip(){ if(!isHosted||isStandalone) return; if(isIOS||isAndroid||installEvt) $('installChip').hidden=false; }
+$('installChip').addEventListener('click',()=>{
+  if(inKakao||inOtherApp){ $('inappGuide').hidden=false; $('inappSteps').innerHTML=isIOS
+      ? `버튼이 안 되면: 화면 오른쪽 아래 ${DOTS_ICO} 를 누르고 <b>'다른 브라우저로 열기'</b> 또는 <b>'Safari로 열기'</b>를 누르세요.`
+      : `버튼이 안 되면: 화면 오른쪽 위 ${DOTS_ICO} 를 누르고 <b>'다른 브라우저로 열기'</b>를 누르세요.`; return; }
+  if(installEvt){ $('installBtn').click(); return; }
+  showInstallGuide(); });
 $('openExternal').addEventListener('click',openExternal);
 $('guideLater').addEventListener('click',()=>{ $('installGuide').hidden=true; });
 $('guideNever').addEventListener('click',()=>{ $('installGuide').hidden=true; });
@@ -2142,8 +2154,8 @@ $('guideInstall').addEventListener('click',()=>$('installBtn').click());
 
 /* ---------- 홈 화면 설치 (웹앱으로 배포했을 때) ---------- */
 let installEvt=null;
-window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; $('installBtn').textContent='설치하기'; if(!$('installGuide').hidden) showInstallGuide(); });
-window.addEventListener('appinstalled',()=>{ installEvt=null; $('installGuide').hidden=true; toast('홈 화면에 설치했습니다.'); });
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; $('installBtn').textContent='설치하기'; showInstallChip(); if(!$('installGuide').hidden) showInstallGuide(); });
+window.addEventListener('appinstalled',()=>{ installEvt=null; $('installGuide').hidden=true; $('installChip').hidden=true; toast('홈 화면에 설치했습니다.'); });
 $('installBtn').addEventListener('click',async()=>{
   if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; $('installBtn').textContent='방법 보기'; return; }
   tab('home'); setTimeout(()=>{ showInstallGuide(); window.scrollTo({top:0,behavior:'smooth'}); },120);
@@ -2156,6 +2168,7 @@ $('installBtn').addEventListener('click',async()=>{
   if(TABS.includes(h)) r={name:h}; else if(SOUNDS[h]) r={name:'sound',id:h}; else if(PMAP[h]) r={name:'practice',id:h};
   try{history.replaceState({name:'home'},'','#home')}catch(e){histOK=false}
   show({name:'home'});
+  showInstallChip();
   if(r.name==='sound'||r.name==='practice') go(r); else if(r.name!=='home') tab(r.name);
 })();
 </script>
