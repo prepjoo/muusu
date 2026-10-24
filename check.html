@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무우수 소리 점검</title>
+<style>
+:root{--bg:#eef0ea;--ink:#2b332d;--moss:#4f6b58;--line:#d5dbd2;--surface:#f8f9f5;--bad:#b4534e;--ok:#3f7a52}
+@media (prefers-color-scheme:dark){:root{--bg:#1c201d;--ink:#e6ebe4;--moss:#8fb39a;--line:#39413b;--surface:#252a26;--bad:#e08a84;--ok:#8fcf9f}}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 60px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:24px;margin:4px 0}
+p{margin:0}
+button{font:inherit;font-size:18px;padding:14px 16px;border-radius:14px;border:1px solid var(--moss);background:var(--moss);color:#fff;cursor:pointer;width:100%}
+button.ghost{background:transparent;color:var(--moss)}
+#out{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:15px;white-space:pre-wrap;word-break:break-all;min-height:60px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+small{color:#7a847c}
+</style>
+</head>
+<body>
+<main>
+<h1>무우수 소리 점검</h1>
+<p>① <b>[점검 시작]</b>을 누르고 30초쯤 기다린 뒤, 아래 결과 화면을 캡처해 보내 주세요.</p>
+<button id="run">점검 시작</button>
+<div id="out">아직 점검하지 않았습니다.</div>
+<p>② 점검 뒤에도 소리가 안 나면 <b>[저장본 비우고 다시 열기]</b>를 누르세요. 기록은 지워지지 않습니다.</p>
+<button class="ghost" id="reset">저장본 비우고 다시 열기</button>
+<small>이 화면은 점검용입니다. 앱으로 돌아가려면 muusu.vercel.app 을 여세요.</small>
+</main>
+<script>
+const out=document.getElementById('out');
+const log=(t,c)=>{ const s=document.createElement('div'); if(c) s.className=c; s.textContent=t; out.appendChild(s); };
+const T=(ms,p)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('시간 초과')),ms))]);
+document.getElementById('run').addEventListener('click',async()=>{
+  out.textContent='';
+  log('시각: '+new Date().toLocaleString('ko-KR'));
+  log('기기: '+navigator.userAgent.slice(0,140));
+  // 1. 서비스 워커·저장본
+  try{
+    const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+    log('서비스워커: '+(r?(r.active?'작동 중':'')+(r.waiting?' / 대기 중 있음':'')+(r.installing?' / 설치 중':''):'없음'));
+    if(window.caches){ const ks=await caches.keys(); log('저장본: '+(ks.join(', ')||'없음')); }
+  }catch(e){ log('서비스워커 확인 실패: '+e.message,'bad'); }
+  // 2. 기기 소리 (합성음)
+  try{
+    const C=window.AudioContext||window.webkitAudioContext; const ctx=new C(); await ctx.resume();
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.frequency.value=528; g.gain.value=.15; o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+.6);
+    log('1) 합성음 재생: '+ctx.state+' (띵 소리가 났나요?)', ctx.state==='running'?'ok':'bad');
+    // 3. 녹음 파일 받기 + 풀기 (마음챙김 방식)
+    for(const u of ['audio/still-01.mp3?v=32','audio/feelings-09.mp3?v=32']){
+      try{ const t0=performance.now(); const r=await T(20000,fetch(u,{cache:'no-store'}));
+        const b=await r.arrayBuffer(); const head=Array.from(new Uint8Array(b.slice(0,3))).map(x=>x.toString(16)).join(' ');
+        let dec='';
+        try{ const buf=await T(15000,ctx.decodeAudioData(b.slice(0))); dec='풀기 성공 '+buf.duration.toFixed(1)+'초'; }catch(e){ dec='풀기 실패 '+(e&&e.message||e); }
+        log('2) '+u.split('?')[0]+': 상태 '+r.status+', '+r.headers.get('content-type')+', '+b.byteLength+'바이트, 앞 '+head+', '+dec+', '+Math.round(performance.now()-t0)+'ms', /성공/.test(dec)&&r.ok?'ok':'bad');
+      }catch(e){ log('2) '+u+': 받기 실패 '+e.message,'bad'); }
+    }
+  }catch(e){ log('합성음 실패: '+e.message,'bad'); }
+  // 4. 경전 녹음 (오디오 태그 방식)
+  for(const u of ['audio/cheonsu.mp3?v=32','audio/geumgang.mp3?v=32']){
+    await new Promise(res=>{
+      const a=new Audio(); a.preload='auto'; let done=false;
+      const fin=(m,c)=>{ if(done) return; done=true; log(m,c); try{a.pause();a.src='';}catch(e){} res(); };
+      a.addEventListener('playing',()=>setTimeout(()=>fin('3) '+u.split('?')[0]+': 재생 성공 ('+a.currentTime.toFixed(1)+'초까지)','ok'),1500));
+      a.addEventListener('error',()=>fin('3) '+u.split('?')[0]+': 오류 코드 '+(a.error&&a.error.code)+' '+(a.error&&a.error.message||''),'bad'));
+      setTimeout(()=>fin('3) '+u.split('?')[0]+': 12초 안에 재생 안 됨 (상태 '+a.readyState+'/'+a.networkState+')','bad'),12000);
+      a.src=u; a.volume=.3; a.play().catch(e=>fin('3) '+u.split('?')[0]+': 재생 거부 '+e.name+' '+e.message,'bad'));
+    });
+  }
+  log('점검 끝','ok');
+});
+document.getElementById('reset').addEventListener('click',async()=>{
+  try{ const rs=await navigator.serviceWorker.getRegistrations(); for(const r of rs) await r.unregister(); }catch(e){}
+  try{ for(const k of await caches.keys()) await caches.delete(k); }catch(e){}
+  location.href='/?r='+Date.now();
+});
+</script>
+</body>
+</html>
