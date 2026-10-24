@@ -345,6 +345,7 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
 .subctl{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .restart{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);border-radius:999px;padding:0 14px;min-height:40px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer}
 .restart svg{width:16px;height:16px}
+#suSub{gap:6px}#suSub .restart{padding:0 11px;font-size:13.5px;gap:4px}.restart[hidden]{display:none}
 .restart:active{background:var(--moss-soft)}
 .su-size .chip{font-family:var(--serif);padding:4px 14px}
 .su-size .chip:nth-child(1){font-size:13px}.su-size .chip:nth-child(2){font-size:16px}.su-size .chip:nth-child(3){font-size:19px}
@@ -705,7 +706,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <button class="btn ghost" id="suEnd">마치기</button>
         <button class="iconbtn" id="phNext" aria-label="다음 마디"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l8 6-8 6zM18 6v12"/></svg></button>
       </div>
-      <div class="subctl" id="suSub"><button class="restart" id="suRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button><button class="restart" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈으로</button></div>
+      <div class="subctl" id="suSub"><button class="restart" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>홈으로</button><button class="restart" id="suTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"/><path d="M18 6l-7 6 7 6"/></svg>경 처음</button><button class="restart" id="suRestart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>처음부터</button></div>
     </div>
   </section>
 
@@ -1930,7 +1931,7 @@ function renderSutra(){
   $('suText').innerHTML=`<h3>${esc(bk.label(c))}</h3>`+c.paras.map(p=>verse?'<div class="vs-list">'+p.map(one).join('')+'</div>':'<p>'+p.map(one).join(lines?'':' ')+'</p>').join('')+
     (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
-  { const rb=$('suRestart'), tn=[...rb.childNodes].reverse().find(x=>x.nodeType===3); if(tn) tn.textContent=bk.chs.length>1&&!bk.tabs?'이 장 다시 듣기':'처음부터'; }
+  { const rb=$('suRestart'), tn=[...rb.childNodes].reverse().find(x=>x.nodeType===3); if(tn) tn.textContent=bk.chs.length>1&&!bk.tabs?'이 장 처음':'처음부터'; $('suTop').hidden=!(bk.chs.length>1&&!bk.tabs); }
   $('suText').style.setProperty('--suz',settings.suz2||0.85);
   document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz2||0.85))));
   suMark(false);
@@ -2056,6 +2057,7 @@ function suSwitch(k){ // 분 바꾸기 / 한자·한글 바꾸기
   const was=su.playing; suStop(); su.ch=k; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0}); if(was) suPlay();
 }
 $('suEnd').addEventListener('click',()=>{ const was=su.playing||su.touched; suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); if(was) toast('여기서 마칩니다.'); });
+$('suTop').addEventListener('click',()=>{ suStop(); su.ch=0; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); suPlay(); });
 $('suRestart').addEventListener('click',()=>{ suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); suPlay(); });
 $('suPlay').addEventListener('click',()=>{ su.playing?suStop():suPlay(); });
 $('phPrev').addEventListener('click',()=>suGoto(su.i-1,true));
