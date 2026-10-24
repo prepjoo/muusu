@@ -871,6 +871,8 @@ if(!settings.sv4){ settings.fs=1; settings.sv3=1; settings.sv4=1; save('settings
 if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(settings.gap===3) settings.gap=5; settings.sv2=1; save('settings',settings); }
 const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
 let sessions=load('sessions',[]);   // {t, id, sec}
+const MAX_SESS=5000; // 한 해 넘게 쌓여도 연간 기록·연속 일수가 잘리지 않게
+function addSession(x){ sessions.unshift(x); sessions=sessions.slice(0,MAX_SESS); save('sessions',sessions); }
 let last=load('last',null);         // {id, min}
 const chosen={bowl:SOUNDS.bowl.def,bell:SOUNDS.bell.def,lotus:SOUNDS.lotus.def};
 if(last&&chosen[last.id]) chosen[last.id]=last.min;
@@ -879,10 +881,13 @@ if(last&&chosen[last.id]) chosen[last.id]=last.min;
 const TABS=['home','records','settings'];
 let route={name:'home'}, depth=0, histOK=true, fallback=[];
 function show(r){
+  const prev=route;
   route=r;
   if(r.name==='run' && !runState) r={name:'home'};
   if(r.name==='check' && !checkState) r={name:'home'};
-  if(r.name!=='run' && runState) stopRun();
+  // 마치기를 누르지 않고 홈·뒤로 가기로 나가도, 30초 넘게 한 수련은 기록에 남김
+  if(r.name!=='run' && runState){ const x=runState; if(!(x.count>0)&&x.elapsed>=30) addSession({t:Date.now(),id:x.p.id,sec:Math.round(x.elapsed)}); stopRun(); }
+  if(prev&&prev.name==='check' && r.name!=='check' && checkState){ const c=checkState; checkState=null; if(c.sec>=30) addSession({t:Date.now(),id:c.p.id,sec:c.sec}); }
   route=r;
   if(r.name!=='sutra') suStop();
   ['home','records','settings','sound','player','practice','run','check','sutra'].forEach(n=>$('v-'+n).hidden=(n!==r.name));
@@ -1103,7 +1108,7 @@ function togglePause(){
 }
 function record(){
   const sec=Math.round(total-remaining);
-  if(sec>=30){ sessions.unshift({t:Date.now(),id:cur.id,sec}); sessions=sessions.slice(0,500); save('sessions',sessions); }
+  if(sec>=30) addSession({t:Date.now(),id:cur.id,sec});
 }
 function closeAudio(fade){
   setTimeout(()=>keepAlive(false),(fade+.6)*1000);
@@ -1845,12 +1850,12 @@ function noteSummary(n){
 function closeCheck(saveIt,nextId){
   const c=checkState; if(!c) return;
   const note={}; Object.entries(c.vals).forEach(([k,v])=>{ if(Array.isArray(v)?v.length:v) note[k]=v; });
-  sessions.unshift({t:Date.now(),id:c.p.id,sec:c.sec,...(saveIt&&Object.keys(note).length?{note}:{})});
-  sessions=sessions.slice(0,500); save('sessions',sessions);
+  const kept=c.sec>=30; // 듣기명상과 같게 30초 넘게 한 것만 기록 (잘못 눌러 바로 마친 것은 남기지 않음)
+  if(kept) addSession({t:Date.now(),id:c.p.id,sec:c.sec,...(saveIt&&Object.keys(note).length?{note}:{})});
   checkState=null;
   if(nextId){ if(PMAP[nextId].mins) pChosen[nextId]=PMAP[nextId].def; startRun(nextId,true); return; }
   tab('home');
-  toast(saveIt&&c.p.id==='joy'&&note.moment?'기쁨 상자에 담았습니다.':`${c.p.title} ${fmtDur(c.sec)}을 기록했습니다.`);
+  toast(!kept?'30초가 되지 않아 기록에 남기지 않았습니다.':saveIt&&c.p.id==='joy'&&note.moment?'기쁨 상자에 담았습니다.':`${c.p.title} ${fmtDur(c.sec)}을 기록했습니다.`);
 }
 $('cSave').addEventListener('click',()=>closeCheck(true));
 $('cSkip').addEventListener('click',()=>closeCheck(false));
