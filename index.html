@@ -530,6 +530,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <button role="tab" data-period="week">주간</button><button role="tab" data-period="month">월간</button><button role="tab" data-period="year">연간</button>
       </div>
       <div class="chart" id="chart"></div>
+      <p class="note">기록은 이 기기의 브라우저에만 저장됩니다. 30초 이상 앉은 명상만 남깁니다.</p>
     </div>
     <div class="section" id="joySection" hidden>
       <div class="section-head"><h3>기쁨 상자</h3><span class="label">오늘의 작은 기쁨에서 모은 순간</span></div>
@@ -542,6 +543,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <div class="section" id="suStatSec">
       <div class="section-head"><h3>경전 읽기</h3><span class="note">경전별 누적 시간</span></div>
       <ul class="log" id="suStat"></ul>
+      <p class="note">[듣기]를 누르고 읽은 시간을 모두 더합니다. 몇 초만 들어도 쌓이며, 일시정지한 동안은 세지 않습니다. 이 시간은 위의 명상 시간 그래프와 하루 5분에는 더하지 않습니다.</p>
     </div>
     <div class="clearrow"><button class="linkbtn" id="clearBtn">기록 지우기</button>
       <div class="confirm" id="clearConfirm" hidden>
@@ -549,7 +551,6 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <button class="btn small" id="clearYes">지우기</button>
         <button class="btn small ghost" id="clearNo">그만두기</button>
       </div></div>
-    <p class="note">기록은 이 기기의 브라우저에만 저장됩니다. 30초 이상 앉은 명상만 남깁니다.</p>
   </section>
 
   <!-- 설정 -->
