@@ -537,7 +537,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       </div>
       <ul class="log" id="log"></ul>
     </div>
-    <div class="section" id="suStatSec" hidden>
+    <div class="section" id="suStatSec">
       <div class="section-head"><h3>경전 읽기</h3><span class="note">경전별 누적 시간</span></div>
       <ul class="log" id="suStat"></ul>
     </div>
@@ -1222,9 +1222,11 @@ function renderRecords(){
   $('joySection').hidden=!joys.length;
   $('joyList').innerHTML=joys.slice(0,12).map(s=>{const d=new Date(s.t);
     return `<div class="joy"><span class="label num">${d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'})}</span><b>${esc(s.note.moment)}</b>${s.note.feel&&s.note.feel.length?`<span class="lognote">${esc(s.note.feel.join(', '))}</span>`:''}</div>`}).join('');
-  { const order=['반야심경','금강경','법성게','천수경','사찰의 주련'], rows=order.filter(k=>suTime[k]&&suTime[k].sec>=1);
-    $('suStatSec').hidden=!rows.length;
-    $('suStat').innerHTML=rows.map(k=>{ const x=suTime[k], d=new Date(x.last);
+  { const order=['반야심경','금강경','법성게','천수경','사찰의 주련'], rows=order; // 아직 읽지 않은 경전도 늘 보이게
+    $('suStatSec').hidden=false;
+    $('suStat').innerHTML=rows.map(k=>{ const x=suTime[k];
+      if(!x||x.sec<1) return `<li><span>${esc(k)}<span class="lognote">아직 읽지 않았어요</span></span><span class="muted">0분</span></li>`;
+      const d=new Date(x.last);
       return `<li><span>${esc(k)}<span class="lognote">마지막으로 읽은 날 ${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})}</span></span><span class="muted">${x.sec<60?Math.round(x.sec)+'초':fmtMin(x.sec)}</span></li>`; }).join(''); }
   $('clearBtn').hidden=!sessions.length&&!Object.keys(suTime).length; $('clearConfirm').hidden=true;
 }
