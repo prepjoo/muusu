@@ -761,7 +761,6 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="al-clock num" id="alClock">--:--</div>
       <p class="al-msg" id="alMsg"></p>
       <button class="btn ghost" id="alStop">알람 끄기</button>
-      <button class="btn ghost" id="alGo" hidden>바로 안내 듣기</button>
     </div>
   </section>
 
@@ -2340,30 +2339,45 @@ function alTick(onlyDraw){
   const now=new Date(); $('alClock').textContent=two(now.getHours())+':'+two(now.getMinutes());
   $('alarmState').textContent=alarm.on?settings.alarm.time+' 켜짐':'설정 ›';
   if(!alarm.on) return;
-  const left=alarm.target-now.getTime();
-  if(alarm.ringing){ $('alMsg').textContent=settings.alarm.next==='guide'?'종소리가 끝나면 안내 음성이 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.'; }
+  const left=alarm.target-now.getTime(), t=Date.now();
+  if(alarm.guideAt&&t>=alarm.guideAt) $('alMsg').textContent='안내 음성이 이어지고 있습니다.\n눈을 감은 채 들으셔도 됩니다.';
+  else if(alarm.ringing) $('alMsg').textContent=settings.alarm.next==='guide'?'종소리가 끝나면 안내 음성이 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.';
   else { const mm=Math.max(0,Math.ceil(left/60000)); $('alMsg').textContent=`${settings.alarm.time}에 울립니다 · ${mm>=60?Math.floor(mm/60)+'시간 ':''}${mm%60}분 남음\n이 화면을 켜 둔 채 두세요.`; }
   if(onlyDraw) return;
-  // 남은 시간이 1분 안쪽이면 소리 장치 시계에 정확히 걸어 둠 (화면이 꺼져 계산이 느려져도 제때 울리게)
-  if(!alarm.scheduled&&left<=60000){ alarm.scheduled=true; unlockAudio(); const at=pctx.currentTime+Math.max(.05,left/1000);
-    const plan=alPlan(); alarm.out=alSchedule(at,plan); alarm.ringAt=Date.now()+Math.max(50,left);
-    const end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
-    clearTimeout(alarm.goT); alarm.goT=setTimeout(alAfterBells,Math.max(50,left)+end*1000); }
-  if(!alarm.ringing&&alarm.ringAt&&Date.now()>=alarm.ringAt){ alarm.ringing=true; $('alGo').hidden=settings.alarm.next!=='guide'; alTick(true); }
+  // 남은 시간이 1분 안쪽이면 종소리와 안내 음성을 모두 소리 장치 시계에 이어 걸어 둠
+  // → 화면이 꺼져 앱의 계산이 느려져도 종소리 뒤에 안내가 끊김 없이 자동으로 나옴
+  if(!alarm.scheduled&&left<=60000){ alarm.scheduled=true; unlockAudio();
+    const lead=Math.max(.05,left/1000), at=pctx.currentTime+lead, plan=alPlan();
+    alarm.out=alSchedule(at,plan); alarm.ringAt=t+lead*1000;
+    let end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
+    if(settings.alarm.next==='guide'&&alarm.bufs){
+      const g0=plan[plan.length-1].t+6; let tg=g0; const st=planSteps(PMAP.wake);
+      alarm.bufs.forEach((b,k)=>{ const src=pctx.createBufferSource(); src.buffer=b; src.connect(alarm.out); src.start(at+tg); tg+=Math.max(b.duration+3,st[k]?st[k].d:b.duration+4); });
+      alarm.guideAt=t+(lead+g0)*1000; alarm.guideSec=Math.round(tg-g0); end=tg;
+    } else if(settings.alarm.next==='guide') alarm.fallback=true; // 안내 녹음을 못 받았으면 종소리 뒤 화면 안내로
+    alarm.endAt=t+(lead+end)*1000; }
+  if(!alarm.ringing&&alarm.ringAt&&t>=alarm.ringAt){ alarm.ringing=true; alTick(true); }
+  if(alarm.endAt&&t>=alarm.endAt) alFinish();
 }
-function alAfterBells(){
-  if(!alarm.on) return;
-  const next=settings.alarm.next; alDisarm(true);
-  if(next==='guide'){ startRun('wake',true); } else alRender();
+function alFinish(){ // 종소리(와 안내)가 모두 끝남
+  const g=alarm.guideAt&&alarm.guideSec, fb=alarm.fallback; alarm.fallback=false;
+  if(fb){ alDisarm(true); startRun('wake',true); return; }
+  if(g) addSession({t:Date.now(),id:'wake',sec:alarm.guideSec});
+  alDisarm(true);
+  if(route.name==='alarm') $('alMsg').textContent='';
+  toast(g?'좋은 아침입니다. 깨어나기를 기록했습니다.':'알람을 마쳤습니다.');
 }
+function alAfterBells(){ alFinish(); }
 function alArm(){
   unlockAudio(); keepAlive(true); Wake.on('alarm');
-  alarm.on=true; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.target=alNextTarget();
+  alarm.on=true; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.guideAt=0; alarm.endAt=0; alarm.target=alNextTarget();
+  // 안내 음성을 미리 받아 풀어 둠 (울릴 때 인터넷이 없어도 되게)
+  alarm.bufs=null; if(settings.alarm.next==='guide'){ const n=REC.wake||0; Promise.all(Array.from({length:n},(_,k)=>loadRec(recUrl('wake',k+1)))).then(b=>{ alarm.bufs=b; }).catch(()=>{ alarm.bufs=null; }); }
   clearInterval(alarm.timer); alarm.timer=setInterval(()=>alTick(false),1000);
   alRender(); alTick(false);
 }
 function alDisarm(quiet){
-  alarm.on=false; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0;
+  alarm.on=false; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.guideAt=0; alarm.endAt=0;
   clearInterval(alarm.timer); alarm.timer=null; clearTimeout(alarm.goT);
   if(!quiet) alStopSound(); else setTimeout(alStopSound,100);
   Wake.off('alarm'); keepAlive(false);
@@ -2375,8 +2389,7 @@ $('alarmBtn').addEventListener('click',()=>go({name:'alarm'}));
 $('alPreview').addEventListener('click',()=>{ unlockAudio(); alStopSound(); const a=settings.alarm, lv=a.ramp?[.28,.58,1]:[1,1,1];
   alarm.out=alSchedule(pctx.currentTime+.1,lv.map((g,i)=>({t:i*3.5,g}))); });
 $('alArm').addEventListener('click',()=>{ const v=$('alTime').value; if(v){ settings.alarm.time=v; save('settings',settings); } alArm(); });
-$('alStop').addEventListener('click',()=>{ alDisarm(false); toast('알람을 껐습니다.'); });
-$('alGo').addEventListener('click',()=>{ alStopSound(); clearTimeout(alarm.goT); alAfterBells(); });
+$('alStop').addEventListener('click',()=>{ const g=alarm.guideAt&&Date.now()>=alarm.guideAt; if(g){ const sec=Math.round((Date.now()-alarm.guideAt)/1000); if(sec>=30) addSession({t:Date.now(),id:'wake',sec}); } alDisarm(false); toast(g?'안내를 마쳤습니다.':'알람을 껐습니다.'); });
 
 /* ---------- 시작 ---------- */
 (function init(){
