@@ -363,6 +363,16 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
   display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
 .sos{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:1px solid var(--lotus);background:transparent;
   border-radius:14px;padding:12px 16px;cursor:pointer;text-align:left}
+.alarmcard{border-color:var(--line)}
+.al-set{display:flex;flex-direction:column;gap:20px}
+.al-time{font:inherit;font-size:44px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 16px;width:100%;box-sizing:border-box;text-align:center}
+.al-on{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding-top:8vh;text-align:center}
+.al-clock{font-size:72px;font-weight:300;letter-spacing:.02em;line-height:1}
+.al-msg{font-size:17px;line-height:1.7;color:var(--muted);margin:0 0 12px;white-space:pre-line}
+body.al-night{background:#000}
+body.al-night #v-alarm{color:#9aa49c}
+body.al-night #v-alarm .topbar{background:#000;color:#9aa49c}body.al-night #v-alarm .topbar h2,body.al-night #v-alarm .iconbtn{color:#9aa49c}body.al-night #v-alarm .btn.ghost{color:#9aa49c;border-color:#333}
+body.al-night #v-alarm .al-clock{color:#c9d1ca}
 .sos b{font-family:var(--serif);font-size:16px}
 .sos>span:last-child{white-space:nowrap}
 .sos span.muted{font-size:13px}
@@ -478,6 +488,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <button class="sos" id="sosBtn">
       <span><b>1분 명상</b><br><span class="muted">마음이 흔들릴 때 · 멈추고 내쉬기</span></span>
       <span class="muted">바로 시작 ›</span>
+    </button>
+    <button class="sos alarmcard" id="alarmBtn">
+      <span><b><span aria-hidden="true">⏰</span> 알람명상</b><br><span class="muted">정한 시각에 종소리로 깨우고 안내로 이어 가기</span></span>
+      <span class="muted" id="alarmState">설정 ›</span>
     </button>
     <nav class="menu" aria-label="메인 메뉴">
       <details class="mm" data-mm="listen">
@@ -668,6 +682,10 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <div class="hero-art"><div class="big-pebble" id="prArt"></div></div>
     <div class="desc"><span class="label" id="prGroup"></span><h1 id="prTitle"></h1><p class="muted" id="prSub"></p></div>
     <div class="when"><span class="label">이럴 때 좋아요</span><span id="prWhen"></span></div>
+    <div class="section" id="prDirBox" hidden>
+      <span class="label">순서</span>
+      <div class="chips" role="group" aria-label="바디스캔 순서"><button class="chip" data-dir="bodyscan">발끝부터</button><button class="chip" data-dir="bodyscanH">머리부터</button></div>
+    </div>
     <div class="section" id="prTimeBox">
       <span class="label">시간</span>
       <div class="chips" id="prChips" role="group" aria-label="시간"></div>
@@ -728,6 +746,30 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
   </section>
 
   <!-- 마침 기록 -->
+  <!-- 알람명상 -->
+  <section class="view" id="v-alarm" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-back aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2>알람명상</h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
+    </div>
+    <div id="alSet" class="al-set">
+      <div class="section"><span class="label">울릴 시각</span><input type="time" id="alTime" class="al-time" value="06:30"></div>
+      <div class="section"><span class="label">소리</span><div class="chips" id="alSnd"><button class="chip" data-v="bowl">싱잉볼</button><button class="chip" data-v="bell">범종</button></div></div>
+      <div class="section"><span class="label">울림 횟수 <span class="note">작게 · 중간 · 크게, 세 단계마다</span></span><div class="chips" id="alN"><button class="chip" data-v="1">1번</button><button class="chip" data-v="3">3번</button><button class="chip" data-v="5">5번</button></div></div>
+      <div class="section"><span class="label">소리 크기</span><div class="chips" id="alRamp"><button class="chip" data-v="1">서서히 높이기</button><button class="chip" data-v="0">같은 크기로</button></div></div>
+      <div class="section"><span class="label">종소리 다음에</span><div class="chips" id="alNext"><button class="chip" data-v="still">숨 사이의 쉼 안내</button><button class="chip" data-v="none">종소리만</button></div></div>
+      <button class="btn ghost" id="alPreview">미리 듣기</button>
+      <button class="btn" id="alArm">알람 켜기</button>
+      <p class="note">알람은 무우수 화면을 켜 둔 동안에만 울립니다. 알람을 켠 뒤 이 화면 그대로 휴대폰을 충전기에 연결해 두세요. 휴대폰 기본 알람처럼 앱을 닫아도 울리지는 않습니다.</p>
+    </div>
+    <div id="alOn" class="al-on" hidden>
+      <div class="al-clock num" id="alClock">--:--</div>
+      <p class="al-msg" id="alMsg"></p>
+      <button class="btn ghost" id="alStop">알람 끄기</button>
+      <button class="btn ghost" id="alGo" hidden>바로 안내 듣기</button>
+    </div>
+  </section>
+
   <section class="view" id="v-check" hidden>
     <div class="topbar">
       <span></span><h2 id="cTitle"></h2><button class="iconbtn" data-home aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></button>
@@ -911,7 +953,8 @@ function show(r){
   if(prev&&prev.name==='check' && r.name!=='check' && checkState){ const c=checkState; checkState=null; if(c.sec>=30) addSession({t:Date.now(),id:c.p.id,sec:c.sec}); }
   route=r;
   if(r.name!=='sutra') suStop();
-  ['home','records','settings','sound','player','practice','run','check','sutra'].forEach(n=>$('v-'+n).hidden=(n!==r.name));
+  ['home','records','settings','sound','player','practice','run','check','sutra','alarm'].forEach(n=>$('v-'+n).hidden=(n!==r.name));
+  document.body.classList.toggle('al-night',r.name==='alarm'&&!!alarm.on);
   const isTab=TABS.includes(r.name);
   $('tabbar').hidden=!isTab;
   document.body.classList.toggle('no-nav',!isTab);
@@ -923,6 +966,8 @@ function show(r){
   if(r.name==='practice') renderPractice(r.id);
   if(r.name==='check') renderCheck();
   if(r.name==='sutra'){ if(r.book&&r.book!==su.book) suOpen(r.book); renderSutra(); }
+  if(r.name==='alarm') alRender();
+  if(prev&&prev.name==='alarm'&&r.name!=='alarm'&&alarm.on&&r.name!=='run'){ alDisarm(false); toast('알람 화면을 나가서 알람을 껐습니다.'); }
   updateMini();
   window.scrollTo({top:0});
 }
@@ -1095,7 +1140,7 @@ async function startSession(id){
   if(route.name==='player') show(route); else go({name:'player'});
   render(); lastTick=performance.now();
   timerId=setInterval(tick,250); schedId=setInterval(schedule,200); schedule();
-  if(settings.wake){ try{ wake=await navigator.wakeLock?.request('screen'); }catch(e){} }
+  Wake.on('player');
 }
 function schedule(){
   if(!ctx||paused||done) return;
@@ -1147,7 +1192,7 @@ function closeAudio(fade){
     m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value,now); m.gain.linearRampToValueAtTime(0,now+fade);
     setTimeout(()=>c.close().catch(()=>{}),(fade+.5)*1000); }
   ctx=null;
-  try{wake?.release();}catch(e){} wake=null;
+  Wake.off('player');
 }
 function finish(){
   remaining=0; done=true; record();
@@ -1181,9 +1226,6 @@ function updateMini(){
 $('miniOpen').addEventListener('click',()=>go({name:'player'}));
 $('miniPause').addEventListener('click',togglePause);
 $('miniStop').addEventListener('click',()=>{ endSession(false); });
-document.addEventListener('visibilitychange',async()=>{
-  if(document.visibilityState==='visible'&&ctx&&!paused&&!wake&&settings.wake){ try{wake=await navigator.wakeLock?.request('screen');}catch(e){} }
-});
 
 /* ---------- 기록 ---------- */
 const dayKey=d=>{d=new Date(d);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
@@ -1234,7 +1276,7 @@ function renderRecords(){
   const memos=sessions.filter(s=>s.note&&noteSummary(s.note));
   $('memoCount').textContent=memos.length?memos.length+'개':'';
   $('log').innerHTML=memos.length? memos.slice(0,60).map(s=>{const d=new Date(s.t);
-    const name=SOUNDS[s.id]?.name||PMAP[s.id]?.title||'';
+    const name=SOUNDS[s.id]?.name||(PMAP[s.id]?PMAP[s.id].title+(PMAP[s.id].dir==='head'?' (머리부터)':''):'');
     return `<li><span>${d.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} · ${esc(name)}<span class="lognote">${esc(noteSummary(s.note))}</span></span><span class="muted">${s.sec<60?s.sec+'초':fmtMin(s.sec)}</span></li>`}).join('')
     : '<li class="empty">아직 감정 메모가 없습니다. 마음챙김을 마친 뒤 느낌을 고르거나 한 줄 메모를 남기면 여기에 모입니다.</li>';
   const joys=sessions.filter(s=>s.id==='joy'&&s.note&&s.note.moment);
@@ -1270,7 +1312,7 @@ $('chimeTest').addEventListener('click',()=>{ const was=settings.chime; settings
 
 $('defVol').addEventListener('input',e=>{settings.volume=+e.target.value;save('settings',settings);if(cur&&cur.id!=='lotus'){$('vol').value=settings.volume;try{if(out&&ctx)out.gain.setTargetAtTime(settings.volume/100,ctx.currentTime,.05)}catch(err){}}});
 $('rainVol').addEventListener('input',e=>{settings.rainVol=+e.target.value;save('settings',settings);if(cur&&cur.id==='lotus'){$('vol').value=settings.rainVol;try{if(out&&ctx)out.gain.setTargetAtTime(settings.rainVol/100,ctx.currentTime,.05)}catch(err){}}});
-$('wakeSw').addEventListener('change',e=>{settings.wake=e.target.checked;save('settings',settings);if(!settings.wake){try{wake?.release()}catch(err){}wake=null}});
+$('wakeSw').addEventListener('change',e=>{settings.wake=e.target.checked;save('settings',settings);Wake.sync();});
 
 /* ---------- 마음챙김 ---------- */
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1419,6 +1461,26 @@ const PRACTICES=[
   form:[
    {key:'body',label:'몸에서 알아차린 것',type:'multi',options:['편안한 곳','뻐근한 곳','따뜻함','무거움','가벼움','졸림','잘 모르겠음']},
    {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 어깨가 생각보다 굳어 있었다'}]},
+ {id:'bodyscanH',no:10,group:'하루를 닫으며',title:'바디스캔',sub:'머리끝에서 발끝까지 몸 살피기',visual:'breath',mins:null,hidden:true,dir:'head',
+  when:'잠들기 전, 몸이 뻣뻣하거나 지쳤을 때. 누워서 하면 좋습니다.',
+  steps:[
+   D('바닥에 눕거나 의자에 편히 앉습니다.',26),
+   D('배에서 숨을 느끼며 잠시 쉽니다.',51),
+   D('주의를 머리 꼭대기로 옮깁니다. 정수리, 이마, 눈 주위, 얼굴.',77),
+   D('목과 턱. 날숨에 턱의 힘을 풉니다.',51),
+   D('어깨, 팔, 손, 손가락 끝까지. 날숨에 하나씩 내려놓습니다.',77),
+   D('가슴과 등. 심장이 뛰는 것을 느낄 수 있나요?',77),
+   D('배와 허리. 숨에 따라 오르내리는 배를 느껴 봅니다.',77),
+   D('허벅지와 엉덩이, 바닥에 닿은 몸의 무게를 느낍니다.',77),
+   D('들숨과 함께 주의를 무릎과 종아리로 옮깁니다.',77),
+   D('발목, 발뒤꿈치, 발바닥의 곡선. 숨을 내쉴 때 발이 부드러워지게 합니다.',77),
+   D('마지막으로 발가락. 엄지발가락, 새끼발가락, 발가락 사이의 공간, 발가락에 닿는 공기.',77),
+   D('떠오르는 생각이나 느낌은 알아차리기만 하고 지나가게 둡니다.',51),
+   D('이제 몸 전체를 한꺼번에 느껴 봅니다. 있는 그대로 놓아두고 그대로 머뭅니다.',77),
+   D('손가락과 발가락을 살짝 움직이고, 천천히 눈을 뜹니다.',26)],
+  form:[
+   {key:'body',label:'몸에서 알아차린 것',type:'multi',options:['편안한 곳','뻐근한 곳','따뜻함','무거움','가벼움','졸림','잘 모르겠음']},
+   {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 어깨가 생각보다 굳어 있었다'}]},
  {id:'metta',no:11,group:'하루를 닫으며',title:'자애',sub:'"평안하기를, 행복하기를"',visual:'breath',mins:null,
   when:'나를 탓하는 마음이 들 때, 누군가와 멀어졌다고 느낄 때.',
   steps:[
@@ -1467,14 +1529,14 @@ const fmtDur=s=>s<60?s+'초':(s%60? Math.floor(s/60)+'분 '+(s%60)+'초' : (s/60
 
 // 홈 목록
 (function buildRows(){
-  const groups=[...new Set(PRACTICES.map(p=>p.group))];
+  const groups=[...new Set(PRACTICES.filter(p=>!p.hidden).map(p=>p.group))];
   const GICON={
     '앉아서':SV('<circle cx="12" cy="5" r="2"/><path d="M12 8v4.5"/><path d="M8 10.5l4 2 4-2"/><path d="M4.5 18.5c2-3 4.6-4.5 7.5-4.5s5.5 1.5 7.5 4.5z"/>','si-moss'),
     '생활 속에서':SV('<circle cx="12" cy="12" r="3.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>','si-brass'),
     '마음이 흔들릴 때':SV('<path d="M3 9.5c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>','si-lotus'),
     '하루를 닫으며':SV('<path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.3 6.3 0 0 0 10 10z"/><path d="M17 4v3M15.5 5.5h3"/>','si-moss')
   };
-  $('practiceRows').innerHTML=groups.map(g=>{const ps=PRACTICES.filter(p=>p.group===g);
+  $('practiceRows').innerHTML=groups.map(g=>{const ps=PRACTICES.filter(p=>p.group===g&&!p.hidden);
     return `<details class="sub" data-mm="g-${g}"><summary>${GICON[g]}<b>${g}</b><small>${ps.length}가지</small><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></summary><div class="rows">`+
     ps.map(p=>`<button class="prow" data-practice="${p.id}">
       <span class="pebble">${p.no}</span><span><h4>${p.title}</h4><p>${p.sub} · ${p.mins?p.mins.join('/')+'분':'약 '+fmtDur(Math.round(totalSec(p)/10)*10)}</p></span>${ICON.chev}</button>`).join('')+'</div></details>';}).join('');
@@ -1514,15 +1576,20 @@ function renderPractice(id){
   $('prArt').innerHTML='';
   $('prGroup').textContent=p.group; $('prTitle').textContent=p.title; $('prSub').textContent=p.sub; $('prWhen').textContent=p.when;
   $('prTimeBox').hidden=!p.mins;
+  $('prDirBox').hidden=!(id==='bodyscan'||id==='bodyscanH');
+  document.querySelectorAll('[data-dir]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dir===id)));
   if(p.mins){
     $('prChips').innerHTML=p.mins.map(m=>`<button class="chip" data-m="${m}" aria-pressed="${pChosen[id]===m}">${m}분</button>`).join('');
     $('prChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{pChosen[id]=+c.dataset.m;renderPractice(id)}));
   }
   const st=planSteps(p);
-  $('prMeta').innerHTML=`<span>${st.length}개 문장</span><span>약 ${fmtDur(Math.round(totalSec(p)/10)*10)}</span><span>${settings.chime?'문장이 바뀔 때 종이 울립니다':'안내 종소리 꺼짐'}</span><span>${hasRec(p)?'녹음된 목소리로 안내합니다 · 눈을 감아도 됩니다':voiceOn()?'기기 음성으로 안내합니다 · 눈을 감아도 됩니다':'음성 안내 꺼짐 (설정에서 켤 수 있습니다)'}</span>`;
+  $('prMeta').innerHTML=`<span>${st.length}개 문장</span><span>약 ${fmtDur(Math.round(totalSec(p)/10)*10)}</span><span>${settings.chime?'문장이 바뀔 때 종이 울립니다':'안내 종소리 꺼짐'}</span><span>${hasRec(p)?'녹음된 목소리로 안내합니다 · 눈을 감아도 됩니다':(p.dir==='head'&&settings.voice)?'머리부터 녹음은 준비 중입니다'+(voiceOn()?' · 지금은 기기 음성으로 안내합니다':''):voiceOn()?'기기 음성으로 안내합니다 · 눈을 감아도 됩니다':'음성 안내 꺼짐 (설정에서 켤 수 있습니다)'}</span>`;
   $('prFlow').innerHTML=(p.id==='walk'?p.steps.filter(s=>!s.count||s.count===1).map(s=>s.count?{t:'열 걸음 · 종소리마다 한 걸음씩'}:s):p.steps).map(s=>`<li>${esc(s.t)}</li>`).join('');
 }
 $('prStart').addEventListener('click',()=>startRun(route.id));
+// 바디스캔: 발끝부터 / 머리부터 바꾸기 (같은 소개 화면에서)
+document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.dir; if(route.id===id) return;
+  route={name:'practice',id}; try{history.replaceState(route,'','#'+id)}catch(e){} renderPractice(id); }));
 
 // 안내 종
 let pctx=null;
@@ -1536,6 +1603,36 @@ function silentWav(){
   v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);
   let str='';b.forEach(x=>str+=String.fromCharCode(x));return 'data:audio/wav;base64,'+btoa(str);
 }
+
+/* ---------- 화면 켜짐 유지 ----------
+   휴대폰이 화면 잠금을 풀어 버리면(다른 앱·알림·절전) 다시 걸고,
+   잠금 기능이 없는 브라우저에서는 소리 없는 아주 작은 영상을 반복해 화면이 꺼지지 않게 함 */
+const Wake={want:new Set(),lock:null,vid:null,busy:false,
+  on(k){ this.want.add(k); this.sync(); },
+  off(k){ this.want.delete(k); this.sync(); },
+  async sync(){
+    const need=this.want.size>0&&settings.wake&&document.visibilityState==='visible';
+    if(!need){ const l=this.lock; this.lock=null; try{ l&&l.release(); }catch(e){} this.vidOff(); return; }
+    if(this.busy) return; this.busy=true;
+    try{
+      if((!this.lock||this.lock.released)&&navigator.wakeLock){
+        const l=await navigator.wakeLock.request('screen'); this.lock=l;
+        l.addEventListener('release',()=>{ if(this.lock===l){ this.lock=null; setTimeout(()=>this.sync(),400); } });
+      }
+    }catch(e){ this.lock=null; }
+    this.busy=false;
+    if(this.lock) this.vidOff(); else this.vidOn();
+  },
+  vidOn(){ try{
+    if(!this.vid){ const v=document.createElement('video'); v.muted=true; v.loop=true; v.setAttribute('playsinline',''); v.setAttribute('muted','');
+      v.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0';
+      v.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMrbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlV0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHNbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAThzdGJsAAAAuHN0c2QAAAAAAAAAAQAAAKhhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALmF2Y0MBQsAK/+EAFmdCwArZHsBEAAADAAQAAAMACDxImSABAAVoy4PLIAAAABBwYXNwAAAAAQAAAAEAAAAUYnRydAAAAAAAAApAAAAKQAAAABhzdHRzAAAAAAAAAAEAAAACAABAAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAACAAAAAQAAABxzdHN6AAAAAAAAAAAAAAACAAAChgAAAAoAAAAUc3RjbwAAAAAAAAABAAADWwAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNjAuMTYuMTAwAAAACGZyZWUAAAKYbWRhdAAAAnAGBf//bNxF6b3m2Ui3lizYINkj7u94MjY0IC0gY29yZSAxNjQgcjMxMDggMzFlMTlmOSAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBDb3B5bGVmdCAyMDAzLTIwMjMgLSBodHRwOi8vd3d3LnZpZGVvbGFuLm9yZy94MjY0Lmh0bWwgLSBvcHRpb25zOiBjYWJhYz0wIHJlZj0zIGRlYmxvY2s9MTowOjAgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTEuMDA6MC4wMCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTIgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAOZYiEBb///w9FAAFPf4AAAAAGQZo4CvqA'; document.body.appendChild(v); this.vid=v; }
+    this.vid.play().catch(()=>{}); }catch(e){} },
+  vidOff(){ try{ this.vid&&this.vid.pause(); }catch(e){} }
+};
+document.addEventListener('visibilitychange',()=>Wake.sync());
+// 화면을 누를 때마다(사용자 동작) 한 번 더 걸어 둠: 영상 방식은 사용자 동작이 있어야 시작되는 기기가 있음
+document.addEventListener('click',()=>{ if(Wake.want.size) Wake.sync(); },true);
 function keepAlive(on){
   try{
     if(on){ if(!silentEl){ silentEl=new Audio(silentWav()); silentEl.loop=true; silentEl.setAttribute('playsinline',''); } silentEl.play().catch(()=>{}); }
@@ -1688,7 +1785,7 @@ async function startRun(id,replace){
   if(replace) replaceRoute({name:'run'}); else go({name:'run'});
   renderCountdown();
   clearInterval(runTimer); runTimer=setInterval(runTick,250);
-  if(settings.wake){ try{ runWake=await navigator.wakeLock?.request('screen'); }catch(e){} }
+  Wake.on('run');
 }
 function runTick(){
   const r=runState; if(!r) return;
@@ -1825,7 +1922,7 @@ function stopRun(){
   if(runState) clearTimeout(runState.sp);
   hush();
   clearInterval(runTimer); runTimer=null; runState=null;
-  try{runWake?.release();}catch(e){} runWake=null;
+  Wake.off('run');
 }
 function finishRun(){
   const r=runState;
@@ -2087,9 +2184,8 @@ function suWarmNext(){ // 금강경: 다음 분 녹음을 미리 받아 두어 �
   setTimeout(()=>{ try{ fetch(u).then(r=>r.blob()).catch(()=>{ delete suWarmed[u]; }); }catch(e){} },4000);
 }
 let suWake=null;
-async function suWakeOn(){ if(settings.wake&&!suWake){ try{ suWake=await navigator.wakeLock?.request('screen'); }catch(e){} } }
-function suWakeOff(){ try{ suWake?.release(); }catch(e){} suWake=null; }
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&su.playing){ suWake=null; suWakeOn(); } });
+function suWakeOn(){ Wake.on('sutra'); }
+function suWakeOff(){ Wake.off('sutra'); }
 function suPlay(){
   unlockAudio(); if(!su.playing) suT0=Date.now(); su.playing=true; su.touched=true; su.retry=0; suWakeOn();
   if(B().has(C())) suStartAudio(su.i===0); else { su.usingAudio=false; suTick(); }
@@ -2204,6 +2300,79 @@ $('installBtn').addEventListener('click',async()=>{
   if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; $('installBtn').textContent='방법 보기'; return; }
   tab('home'); setTimeout(()=>{ showInstallGuide(); window.scrollTo({top:0,behavior:'smooth'}); },120);
 });
+
+/* ---------- 알람명상 ----------
+   정한 시각이 되면 종소리를 세 단계(작게·중간·크게)로 울리고, 이어서 '숨 사이의 쉼' 안내를 들려줌.
+   웹앱이라 앱을 닫으면 울릴 수 없으므로, 켜 둔 동안 화면 켜짐을 유지하고 소리 장치를 깨워 둠 */
+settings.alarm=Object.assign({time:'06:30',snd:'bowl',n:3,ramp:1,next:'still'},settings.alarm||{});
+const alarm={on:false,target:0,ringing:false,timer:null,out:null,goT:null,scheduled:false};
+const AL_GAP={bowl:7,bell:9}; // 종 사이 간격(초)
+function alPlan(){ // [{t:시작부터 초, g:세기}]
+  const a=settings.alarm, gap=AL_GAP[a.snd], lv=a.ramp?[.28,.58,1]:[1,1,1], plan=[]; let t=0;
+  lv.forEach(g=>{ for(let i=0;i<a.n;i++){ plan.push({t,g}); t+=gap; } t+=2; });
+  return plan;
+}
+function alSchedule(at,plan){ // pctx 시계에 맞춰 종소리를 미리 걸어 둠
+  unlockAudio();
+  const c=pctx, o=c.createGain(); o.gain.value=Math.min(1,settings.volume/100*.9+.1); o.connect(c.destination);
+  const sc=ctx, sm=master, sn=_noise; ctx=c;
+  try{ if(!alarm.noise) alarm.noise=noiseBuf(4); _noise=alarm.noise;
+    plan.forEach(p=>{ const g=c.createGain(); g.gain.value=p.g; g.connect(o); master=g; (settings.alarm.snd==='bell'?bellStrike:bowlStrike)(at+p.t); });
+  }finally{ ctx=sc; master=sm; _noise=sn; }
+  return o;
+}
+function alStopSound(){ const o=alarm.out; alarm.out=null; if(o){ try{ o.gain.setTargetAtTime(0,pctx.currentTime,.15); setTimeout(()=>{ try{o.disconnect()}catch(e){} },800); }catch(e){} } }
+function alNextTarget(){ const [h,m]=settings.alarm.time.split(':').map(Number), d=new Date(); d.setHours(h,m,0,0); if(d<=new Date()) d.setDate(d.getDate()+1); return d.getTime(); }
+const two=n=>String(n).padStart(2,'0');
+function alRender(){
+  const a=settings.alarm;
+  $('alTime').value=a.time;
+  [['alSnd','snd'],['alN','n'],['alRamp','ramp'],['alNext','next']].forEach(([id,k])=>$(id).querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(a[k])))));
+  $('alSet').hidden=alarm.on; $('alOn').hidden=!alarm.on;
+  document.body.classList.toggle('al-night',route.name==='alarm'&&alarm.on);
+  alTick(true);
+}
+function alTick(onlyDraw){
+  const now=new Date(); $('alClock').textContent=two(now.getHours())+':'+two(now.getMinutes());
+  $('alarmState').textContent=alarm.on?settings.alarm.time+' 켜짐':'설정 ›';
+  if(!alarm.on) return;
+  const left=alarm.target-now.getTime();
+  if(alarm.ringing){ $('alMsg').textContent=settings.alarm.next==='still'?'종소리가 끝나면 숨 사이의 쉼 안내가 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.'; }
+  else { const mm=Math.max(0,Math.ceil(left/60000)); $('alMsg').textContent=`${settings.alarm.time}에 울립니다 · ${mm>=60?Math.floor(mm/60)+'시간 ':''}${mm%60}분 남음\n이 화면을 켜 둔 채 두세요.`; }
+  if(onlyDraw) return;
+  // 남은 시간이 1분 안쪽이면 소리 장치 시계에 정확히 걸어 둠 (화면이 꺼져 계산이 느려져도 제때 울리게)
+  if(!alarm.scheduled&&left<=60000){ alarm.scheduled=true; unlockAudio(); const at=pctx.currentTime+Math.max(.05,left/1000);
+    const plan=alPlan(); alarm.out=alSchedule(at,plan); alarm.ringAt=Date.now()+Math.max(50,left);
+    const end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
+    clearTimeout(alarm.goT); alarm.goT=setTimeout(alAfterBells,Math.max(50,left)+end*1000); }
+  if(!alarm.ringing&&alarm.ringAt&&Date.now()>=alarm.ringAt){ alarm.ringing=true; $('alGo').hidden=settings.alarm.next!=='still'; alTick(true); }
+}
+function alAfterBells(){
+  if(!alarm.on) return;
+  const next=settings.alarm.next; alDisarm(true);
+  if(next==='still'){ startRun('still',true); } else alRender();
+}
+function alArm(){
+  unlockAudio(); keepAlive(true); Wake.on('alarm');
+  alarm.on=true; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.target=alNextTarget();
+  clearInterval(alarm.timer); alarm.timer=setInterval(()=>alTick(false),1000);
+  alRender(); alTick(false);
+}
+function alDisarm(quiet){
+  alarm.on=false; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0;
+  clearInterval(alarm.timer); alarm.timer=null; clearTimeout(alarm.goT);
+  if(!quiet) alStopSound(); else setTimeout(alStopSound,100);
+  Wake.off('alarm'); keepAlive(false);
+  if(route.name==='alarm') alRender(); else $('alarmState').textContent='설정 ›';
+}
+$('alarmBtn').addEventListener('click',()=>go({name:'alarm'}));
+['change','input'].forEach(ev=>$('alTime').addEventListener(ev,e=>{ if(e.target.value){ settings.alarm.time=e.target.value; save('settings',settings); } }));
+[['alSnd','snd',String],['alN','n',Number],['alRamp','ramp',Number],['alNext','next',String]].forEach(([id,k,f])=>$(id).querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{ settings.alarm[k]=f(b.dataset.v); save('settings',settings); alRender(); })));
+$('alPreview').addEventListener('click',()=>{ unlockAudio(); alStopSound(); const a=settings.alarm, lv=a.ramp?[.28,.58,1]:[1,1,1];
+  alarm.out=alSchedule(pctx.currentTime+.1,lv.map((g,i)=>({t:i*3.5,g}))); });
+$('alArm').addEventListener('click',()=>{ const v=$('alTime').value; if(v){ settings.alarm.time=v; save('settings',settings); } alArm(); });
+$('alStop').addEventListener('click',()=>{ alDisarm(false); toast('알람을 껐습니다.'); });
+$('alGo').addEventListener('click',()=>{ alStopSound(); clearTimeout(alarm.goT); alAfterBells(); });
 
 /* ---------- 시작 ---------- */
 (function init(){
