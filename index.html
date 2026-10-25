@@ -750,7 +750,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
     <div id="alSet" class="al-set">
       <div class="section"><span class="label">울릴 시각</span><input type="time" id="alTime" class="al-time" value="06:30"></div>
       <div class="section"><span class="label">소리</span><div class="chips" id="alSnd"><button class="chip" data-v="bowl">싱잉볼</button><button class="chip" data-v="bell">범종</button></div></div>
-      <div class="section"><span class="label">울림 횟수 <span class="note">작게 · 중간 · 크게, 세 단계마다</span></span><div class="chips" id="alN"><button class="chip" data-v="1">1번</button><button class="chip" data-v="3">3번</button><button class="chip" data-v="5">5번</button></div></div>
+      <div class="section"><span class="label">울림 횟수</span><div class="chips" id="alN"><button class="chip" data-v="1">1번</button><button class="chip" data-v="3">3번</button><button class="chip" data-v="5">5번</button></div></div>
       <div class="section"><span class="label">소리 크기</span><div class="chips" id="alRamp"><button class="chip" data-v="1">서서히 높이기</button><button class="chip" data-v="0">같은 크기로</button></div></div>
       <div class="section"><span class="label">종소리 난 후</span><div class="chips" id="alNext"><button class="chip" data-v="guide">안내음성</button><button class="chip" data-v="none">종소리만</button></div></div>
       <button class="btn ghost" id="alPreview">미리 듣기</button>
@@ -2310,9 +2310,9 @@ settings.alarm=Object.assign({time:'06:30',snd:'bowl',n:3,ramp:1,next:'guide'},s
 if(settings.alarm.next==='still') settings.alarm.next='guide';
 const alarm={on:false,target:0,ringing:false,timer:null,out:null,goT:null,scheduled:false};
 const AL_GAP={bowl:7,bell:9}; // 종 사이 간격(초)
-function alPlan(){ // [{t:시작부터 초, g:세기}]
-  const a=settings.alarm, gap=AL_GAP[a.snd], lv=a.ramp?[.28,.58,1]:[1,1,1], plan=[]; let t=0;
-  lv.forEach(g=>{ for(let i=0;i<a.n;i++){ plan.push({t,g}); t+=gap; } t+=2; });
+function alPlan(gapOver){ // [{t:시작부터 초, g:세기}] 울림 횟수 = 전체 횟수. 서서히 높이기는 아주 작게 → 크게
+  const a=settings.alarm, gap=gapOver||AL_GAP[a.snd], n=a.n, plan=[];
+  for(let i=0;i<n;i++){ const g=(!a.ramp||n===1)?1:Math.pow(.1,(n-1-i)/(n-1)*1.0)*.95+.05; plan.push({t:i*gap,g:Math.min(1,g)}); }
   return plan;
 }
 function alSchedule(at,plan){ // pctx 시계에 맞춰 종소리를 미리 걸어 둠
@@ -2351,7 +2351,7 @@ function alTick(onlyDraw){
     alarm.out=alSchedule(at,plan); alarm.ringAt=t+lead*1000;
     let end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
     if(settings.alarm.next==='guide'&&alarm.bufs){
-      const g0=plan[plan.length-1].t+6; let tg=g0; const st=planSteps(PMAP.wake);
+      const g0=plan[plan.length-1].t+8; let tg=g0; const st=planSteps(PMAP.wake);
       alarm.bufs.forEach((b,k)=>{ const src=pctx.createBufferSource(); src.buffer=b; src.connect(alarm.out); src.start(at+tg); tg+=Math.max(b.duration+3,st[k]?st[k].d:b.duration+4); });
       alarm.guideAt=t+(lead+g0)*1000; alarm.guideSec=Math.round(tg-g0); end=tg;
     } else if(settings.alarm.next==='guide') alarm.fallback=true; // 안내 녹음을 못 받았으면 종소리 뒤 화면 안내로
@@ -2386,8 +2386,7 @@ function alDisarm(quiet){
 $('alarmBtn').addEventListener('click',()=>go({name:'alarm'}));
 ['change','input'].forEach(ev=>$('alTime').addEventListener(ev,e=>{ if(e.target.value){ settings.alarm.time=e.target.value; save('settings',settings); } }));
 [['alSnd','snd',String],['alN','n',Number],['alRamp','ramp',Number],['alNext','next',String]].forEach(([id,k,f])=>$(id).querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{ settings.alarm[k]=f(b.dataset.v); save('settings',settings); alRender(); })));
-$('alPreview').addEventListener('click',()=>{ unlockAudio(); alStopSound(); const a=settings.alarm, lv=a.ramp?[.28,.58,1]:[1,1,1];
-  alarm.out=alSchedule(pctx.currentTime+.1,lv.map((g,i)=>({t:i*3.5,g}))); });
+$('alPreview').addEventListener('click',()=>{ unlockAudio(); alStopSound(); alarm.out=alSchedule(pctx.currentTime+.1,alPlan(3.5)); });
 $('alArm').addEventListener('click',()=>{ const v=$('alTime').value; if(v){ settings.alarm.time=v; save('settings',settings); } alArm(); });
 $('alStop').addEventListener('click',()=>{ const g=alarm.guideAt&&Date.now()>=alarm.guideAt; if(g){ const sec=Math.round((Date.now()-alarm.guideAt)/1000); if(sec>=30) addSession({t:Date.now(),id:'wake',sec}); } alDisarm(false); toast(g?'안내를 마쳤습니다.':'알람을 껐습니다.'); });
 
