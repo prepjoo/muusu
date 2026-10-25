@@ -476,16 +476,16 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <p id="hGatha"></p>
     </div>
     <button class="today" id="todayBtn">
-      <span class="t-main"><span class="t-lbl">하루 5분 명상 도전</span><b class="num" id="todayMin">0분</b></span>
+      <span class="t-main"><span class="t-lbl" data-t="today_label">하루 5분 명상 도전</span><b class="num" id="todayMin">0분</b></span>
       <span class="t-go">기록 보기 ›</span>
       <span class="beads" aria-hidden="true"><span id="goalDots"></span><span class="t-left" id="todayLeft"></span></span>
     </button>
     <button class="sos" id="sosBtn">
-      <span><b>1분 명상</b><br><span class="muted">마음이 흔들릴 때 · 멈추고 내쉬기</span></span>
+      <span><b data-t="sos_title">1분 명상</b><br><span class="muted" data-t="sos_sub">마음이 흔들릴 때 · 멈추고 내쉬기</span></span>
       <span class="muted">바로 시작 ›</span>
     </button>
     <button class="sos alarmcard" id="alarmBtn">
-      <span><b>알람명상</b><br><span class="muted">정한 시각에 종소리로 깨우고 안내로 이어 가기</span></span>
+      <span><b data-t="alarm_title">알람명상</b><br><span class="muted" data-t="alarm_sub">정한 시각에 종소리로 깨우고 안내로 이어 가기</span></span>
       <span class="muted" id="alarmState">설정 ›</span>
     </button>
     <nav class="menu" aria-label="메인 메뉴">
@@ -493,7 +493,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <summary>
           <span class="mi mi-listen" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 17h20a10 10 0 0 1-20 0z"/><path d="M9 27h14"/><path d="M11 12c0-2 1.4-3 1.4-5M16 12c0-2 1.4-3 1.4-5M21 12c0-2 1.4-3 1.4-5"/></svg></span>
-          <span class="mt"><b>듣기명상</b><small>빗소리 · 범종 · 싱잉볼</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <span class="mt"><b data-t="mm_listen_t">듣기명상</b><small data-t="mm_listen_s">빗소리 · 범종 · 싱잉볼</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div class="mm-body"><div class="rows" id="soundRows"></div></div>
       </details>
@@ -502,7 +502,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
           <span class="mi mi-mind" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
             <path d="M16 26c-3-3-4.5-7-4-12 2.5 1.5 4 4.5 4 12z"/><path d="M16 26c3-3 4.5-7 4-12-2.5 1.5-4 4.5-4 12z"/>
             <path d="M16 26c-5 0-9-2.5-11-7 4-.5 8 1.5 11 7z"/><path d="M16 26c5 0 9-2.5 11-7-4-.5-8 1.5-11 7z"/><path d="M16 26C14 20 14 12 16 6c2 6 2 14 0 20z"/></svg></span>
-          <span class="mt"><b>마음챙김</b><small>12가지 수련 · 한 문장씩 따라 하기</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <span class="mt"><b data-t="mm_mind_t">마음챙김</b><small data-t="mm_mind_s">12가지 수련 · 한 문장씩 따라 하기</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div class="mm-body" id="practiceRows"></div>
       </details>
@@ -510,7 +510,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <summary>
           <span class="mi mi-sutra" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
             <path d="M4 8c4-1.5 8-1.5 12 1 4-2.5 8-2.5 12-1v16c-4-1.5-8-1.5-12 1-4-2.5-8-2.5-12-1z"/><path d="M16 9v16"/><path d="M8 13h4M8 17h4M20 13h4M20 17h4"/></svg></span>
-          <span class="mt"><b>경전읽기</b><small>반야심경 · 금강경 · 법성게 · 천수경</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <span class="mt"><b data-t="mm_sutra_t">경전읽기</b><small data-t="mm_sutra_s">반야심경 · 금강경 · 법성게 · 천수경</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div class="mm-body" id="sutraBody"></div>
       </details>
@@ -518,7 +518,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
         <summary>
           <span class="mi mi-juryeon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
             <path d="M4 6h24M6 6l-1.5 3M26 6l1.5 3"/><path d="M9 9v19M23 9v19"/><rect x="13.5" y="10" width="5" height="15" rx=".6"/><path d="M16 13v2M16 18v2"/></svg></span>
-          <span class="mt"><b>사찰의 주련</b><small>법당 기둥의 글귀 · 7분류 176편</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <span class="mt"><b data-t="mm_jr_t">사찰의 주련</b><small data-t="mm_jr_s">법당 기둥의 글귀 · 7분류 176편</small></span><svg class="mchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
         </summary>
         <div class="mm-body"><div class="rows" id="jrRows"></div></div>
       </details>
@@ -934,6 +934,41 @@ let last=load('last',null);         // {id, min}
 const chosen={bowl:SOUNDS.bowl.def,bell:SOUNDS.bell.def,lotus:SOUNDS.lotus.def};
 if(last&&chosen[last.id]) chosen[last.id]=last.min;
 
+
+/* ---------- 구글 시트에서 글 고치기 ----------
+   시트(웹에서 보기 공유)를 열 때마다 읽어 와 바꿔 넣음. 못 읽으면 마지막으로 받은 글, 그것도 없으면 원래 글 */
+const SHEET_ID='1_eGVAiJelFhYR7f3eXpUOMpxUtgRAuA9McEynf09XD4';
+const TXT={greet_dawn:'고요한 새벽입니다',greet_morning:'새로운 아침입니다',greet_noon:'편안한 오후입니다',greet_evening:'고요한 저녁입니다',greet_night:'깊은 밤입니다'};
+function sheetCSV(t){ // 간단한 CSV 풀이 (따옴표 안의 쉼표·줄바꿈 처리)
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','){row.push(f);f='';} else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';} else if(c!=='\r') f+=c; }
+  if(f||row.length){row.push(f);rows.push(row);} return rows;
+}
+function applySheet(d){ if(!d) return;
+  try{ (d.home||[]).forEach(([k,,v])=>{ v=(v||'').trim(); if(!k||!v) return; TXT[k]=v; document.querySelectorAll('[data-t="'+k+'"]').forEach(el=>el.textContent=v); }); }catch(e){}
+  try{ const g=(d.gatha||[]).map(r=>(r[0]||'').trim()).filter(Boolean); if(g.length>=3){ GATHAS.length=0; g.forEach(x=>GATHAS.push(x)); } }catch(e){}
+  try{ (d.mind||[]).forEach(([id,,t,sub,w])=>{ const p=PMAP[id]; if(!p) return; if(t&&t.trim()) p.title=t.trim(); if(sub&&sub.trim()) p.sub=sub.trim(); if(w&&w.trim()) p.when=w.trim(); }); }catch(e){}
+  try{ (d.sound||[]).forEach(([id,n,sub,desc])=>{ const x=SOUNDS[id]; if(!x) return; if(n&&n.trim()) x.name=n.trim(); if(sub&&sub.trim()) x.sub=sub.trim(); if(desc&&desc.trim()) x.desc=desc.trim(); }); }catch(e){}
+}
+function rebuildLists(){ // 목록 글자만 바꿔 넣음
+  document.querySelectorAll('[data-sound]').forEach(b=>{ const x=SOUNDS[b.dataset.sound]; if(!x) return; const h=b.querySelector('h4'),p=b.querySelector('p'); if(h) h.textContent=x.name; if(p) p.textContent=x.sub; });
+  document.querySelectorAll('[data-practice]').forEach(b=>{ const x=PMAP[b.dataset.practice]; if(!x) return; const h=b.querySelector('h4'),p=b.querySelector('p');
+    if(h) h.textContent=x.title; if(p) p.textContent=x.sub+' · '+(x.mins?x.mins.join('/')+'분':'약 '+fmtDur(Math.round(totalSec(x)/10)*10)); });
+}
+async function loadSheet(){
+  if(!SHEET_ID||SHEET_ID.startsWith('__')) return;
+  const tab=n=>fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(n)}`,{cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.text(); }).then(t=>sheetCSV(t).slice(1));
+  try{
+    const [home,gatha,mind,sound]=await Promise.all(['홈 문구','오늘의 한 구절','마음챙김','듣기명상'].map(tab));
+    const d={home,gatha,mind,sound}; save('sheetText',d); applySheet(d); refreshTexts();
+  }catch(e){}
+}
+function refreshTexts(){ // 바뀐 글을 지금 화면에 다시 그림
+  try{ rebuildLists(); }catch(e){}
+  try{ if(route.name==='home') renderHome(); else if(route.name==='practice') renderPractice(route.id); else if(route.name==='sound') renderSound(route.id); }catch(e){}
+}
 /* ---------- 화면 이동 ---------- */
 const TABS=['home','records','settings'];
 let route={name:'home'}, depth=0, histOK=true, fallback=[];
@@ -997,7 +1032,7 @@ setInterval(()=>{ if(route.name==='home') renderHome(); },60000);
 function renderHome(){
   const d=new Date(), h=d.getHours();
   $('hDate').textContent=d.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
-  $('hGreet').textContent= h<5?'고요한 새벽입니다': h<11?'새로운 아침입니다': h<17?'편안한 오후입니다': h<21?'고요한 저녁입니다':'깊은 밤입니다';
+  $('hGreet').textContent= TXT[h<5?'greet_dawn': h<11?'greet_morning': h<17?'greet_noon': h<21?'greet_evening':'greet_night'];
   document.querySelector('#v-home .hello').dataset.tod= h<5?'dawn': h<11?'morning': h<17?'noon': h<21?'evening':'night';
   $('hTod').textContent= h<5?'새벽': h<11?'아침': h<17?'오후': h<21?'저녁':'밤';
   const dayNo=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
@@ -1544,6 +1579,8 @@ const fmtDur=s=>s<60?s+'초':(s%60? Math.floor(s/60)+'분 '+(s%60)+'초' : (s/60
       <span class="pebble">${p.no}</span><span><h4>${p.title}</h4><p>${p.sub} · ${p.mins?p.mins.join('/')+'분':'약 '+fmtDur(Math.round(totalSec(p)/10)*10)}</p></span>${ICON.chev}</button>`).join('')+'</div></details>';}).join('');
   document.querySelectorAll('[data-practice]').forEach(b=>b.addEventListener('click',()=>go({name:'practice',id:b.dataset.practice})));
 })();
+// 시트에서 받아 둔 글을 먼저 넣고, 새 글을 받아 옴
+applySheet(load('sheetText',null)); rebuildLists(); setTimeout(loadSheet,800);
 $('sosBtn').addEventListener('click',()=>startRun('peace'));
 function openAbout(){ $('aboutModal').hidden=false; $('aboutClose').focus(); }
 function closeAbout(){ $('aboutModal').hidden=true; $('sealBtn').focus(); }
