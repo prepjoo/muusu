@@ -475,10 +475,6 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <span class="label">오늘의 한 구절</span>
       <p id="hGatha"></p>
     </div>
-    <button class="quick" id="quick" hidden>
-      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
-      <span><small>지난번처럼 바로 시작</small><strong id="quickText"></strong></span>
-    </button>
     <button class="today" id="todayBtn">
       <span class="t-main"><span class="t-lbl">하루 5분 명상 도전</span><b class="num" id="todayMin">0분</b></span>
       <span class="t-go">기록 보기 ›</span>
@@ -1007,8 +1003,6 @@ function renderHome(){
   $('hTod').textContent= h<5?'새벽': h<11?'아침': h<17?'오후': h<21?'저녁':'밤';
   const dayNo=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
   $('hGatha').textContent=GATHAS[dayNo%GATHAS.length];
-  if(last&&SOUNDS[last.id]){ $('quick').hidden=false; $('quickText').textContent=SOUNDS[last.id].name+' · '+fmtPreset(last.min); }
-  else $('quick').hidden=true;
   const tsec=stats().today;
   $('todayMin').innerHTML=esc(fmtMin(tsec))+' <em>/ 5분</em>';
   { const done=Math.min(5,Math.floor(tsec/60)); $('goalDots').innerHTML='<i class="on"></i>'.repeat(done)+'<i></i>'.repeat(5-done);
@@ -1018,7 +1012,6 @@ function renderHome(){
 $('soundRows').innerHTML=ORDER.map(id=>{const s=SOUNDS[id];return `<button class="row ic" data-sound="${id}">
   ${SICON[id]}<span><h4>${s.name}</h4><p>${s.sub}</p></span>${ICON.chev}</button>`}).join('');
 document.querySelectorAll('[data-sound]').forEach(b=>b.addEventListener('click',()=>go({name:'sound',id:b.dataset.sound})));
-$('quick').addEventListener('click',()=>{ chosen[last.id]=last.min; startSession(last.id); });
 
 /* ---------- 소리 화면 ---------- */
 function renderSound(id){
@@ -1731,7 +1724,7 @@ function speak(text,onend){
   next();
 }
 // 녹음된 나레이션 (audio/<수련>-<번호>.mp3). 녹음이 있는 수련은 기기 음성 대신 녹음을 재생
-const REC={still:9,listen:7,thoughts:8,feelings:9,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,bodyscanH:14,metta:10,joy:5};
+const REC={still:9,listen:7,thoughts:8,feelings:9,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,bodyscanH:14,metta:10,joy:5,wake:8};
 const AV='32'; // 녹음을 바꿔 올릴 때마다 숫자를 올려 예전 저장본을 쓰지 않게 함
 const recUrl=(id,i)=>`audio/${id}-${String(i).padStart(2,'0')}.mp3?v=${AV}`;
 const lineNo=(p,text)=>[...new Set(p.steps.map(s=>s.t))].indexOf(text)+1;
