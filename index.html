@@ -363,7 +363,6 @@ body.no-nav .mini{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom
   display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
 .sos{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:1px solid var(--lotus);background:transparent;
   border-radius:14px;padding:12px 16px;cursor:pointer;text-align:left}
-.alarmcard{border-color:var(--line)}
 .al-set{display:flex;flex-direction:column;gap:20px}
 .al-time{font:inherit;font-size:44px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 16px;width:100%;box-sizing:border-box;text-align:center}
 .al-on{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding-top:8vh;text-align:center}
@@ -481,7 +480,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <span><small>지난번처럼 바로 시작</small><strong id="quickText"></strong></span>
     </button>
     <button class="today" id="todayBtn">
-      <span class="t-main"><span class="t-lbl">하루 5분 명상</span><b class="num" id="todayMin">0분</b></span>
+      <span class="t-main"><span class="t-lbl">하루 5분 명상 도전</span><b class="num" id="todayMin">0분</b></span>
       <span class="t-go">기록 보기 ›</span>
       <span class="beads" aria-hidden="true"><span id="goalDots"></span><span class="t-left" id="todayLeft"></span></span>
     </button>
@@ -490,7 +489,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <span class="muted">바로 시작 ›</span>
     </button>
     <button class="sos alarmcard" id="alarmBtn">
-      <span><b><span aria-hidden="true">⏰</span> 알람명상</b><br><span class="muted">정한 시각에 종소리로 깨우고 안내로 이어 가기</span></span>
+      <span><b>알람명상</b><br><span class="muted">정한 시각에 종소리로 깨우고 안내로 이어 가기</span></span>
       <span class="muted" id="alarmState">설정 ›</span>
     </button>
     <nav class="menu" aria-label="메인 메뉴">
@@ -757,7 +756,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="section"><span class="label">소리</span><div class="chips" id="alSnd"><button class="chip" data-v="bowl">싱잉볼</button><button class="chip" data-v="bell">범종</button></div></div>
       <div class="section"><span class="label">울림 횟수 <span class="note">작게 · 중간 · 크게, 세 단계마다</span></span><div class="chips" id="alN"><button class="chip" data-v="1">1번</button><button class="chip" data-v="3">3번</button><button class="chip" data-v="5">5번</button></div></div>
       <div class="section"><span class="label">소리 크기</span><div class="chips" id="alRamp"><button class="chip" data-v="1">서서히 높이기</button><button class="chip" data-v="0">같은 크기로</button></div></div>
-      <div class="section"><span class="label">종소리 다음에</span><div class="chips" id="alNext"><button class="chip" data-v="still">숨 사이의 쉼 안내</button><button class="chip" data-v="none">종소리만</button></div></div>
+      <div class="section"><span class="label">종소리 난 후</span><div class="chips" id="alNext"><button class="chip" data-v="guide">안내음성</button><button class="chip" data-v="none">종소리만</button></div></div>
       <button class="btn ghost" id="alPreview">미리 듣기</button>
       <button class="btn" id="alArm">알람 켜기</button>
       <p class="note">알람은 무우수 화면을 켜 둔 동안에만 울립니다. 알람을 켠 뒤 이 화면 그대로 휴대폰을 충전기에 연결해 두세요. 휴대폰 기본 알람처럼 앱을 닫아도 울리지는 않습니다.</p>
@@ -1481,6 +1480,17 @@ const PRACTICES=[
   form:[
    {key:'body',label:'몸에서 알아차린 것',type:'multi',options:['편안한 곳','뻐근한 곳','따뜻함','무거움','가벼움','졸림','잘 모르겠음']},
    {key:'memo',label:'한 줄 메모 (선택)',type:'text',ph:'예: 어깨가 생각보다 굳어 있었다'}]},
+ {id:'wake',no:0,group:'알람명상',title:'깨어나기',sub:'알람명상 안내 음성',visual:'breath',mins:null,hidden:true,
+  when:'알람 종소리가 끝난 뒤, 눈을 감은 채로.',
+  steps:[
+   D('종소리가 멈췄습니다. 눈은 아직 감은 채로 있어도 괜찮습니다.',15),
+   D('방금 들은 종소리의 여운이 아직 남아 있나요? 그 소리를 들은 것은 누구일까요?',25),
+   D('소리를 듣고 있는 나를 느껴 봅니다. 지금 여기, 깨어 있는 내가 있습니다.',25),
+   D('숨이 들어오고 나가는 것을 알아차립니다. 밤새 쉬지 않고 이어 온 숨입니다.',25),
+   D('이불의 무게, 등에 닿는 바닥, 손끝과 발끝의 감각을 느껴 봅니다.',25),
+   D('마음은 지금 어떤가요? 졸린지, 맑은지, 무거운지 그대로 알아차립니다.',25),
+   D('오늘 하루도 이렇게 깨어 있는 마음으로 시작합니다.',18),
+   D('손가락과 발가락을 살짝 움직이고, 준비가 되면 천천히 눈을 뜹니다.',15)]},
  {id:'metta',no:11,group:'하루를 닫으며',title:'자애',sub:'"평안하기를, 행복하기를"',visual:'breath',mins:null,
   when:'나를 탓하는 마음이 들 때, 누군가와 멀어졌다고 느낄 때.',
   steps:[
@@ -1721,7 +1731,7 @@ function speak(text,onend){
   next();
 }
 // 녹음된 나레이션 (audio/<수련>-<번호>.mp3). 녹음이 있는 수련은 기기 음성 대신 녹음을 재생
-const REC={still:9,listen:7,thoughts:8,feelings:9,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,metta:10,joy:5};
+const REC={still:9,listen:7,thoughts:8,feelings:9,eat:10,brush:8,shoes:6,walk:9,peace:5,bodyscan:14,bodyscanH:14,metta:10,joy:5};
 const AV='32'; // 녹음을 바꿔 올릴 때마다 숫자를 올려 예전 저장본을 쓰지 않게 함
 const recUrl=(id,i)=>`audio/${id}-${String(i).padStart(2,'0')}.mp3?v=${AV}`;
 const lineNo=(p,text)=>[...new Set(p.steps.map(s=>s.t))].indexOf(text)+1;
@@ -2304,7 +2314,8 @@ $('installBtn').addEventListener('click',async()=>{
 /* ---------- 알람명상 ----------
    정한 시각이 되면 종소리를 세 단계(작게·중간·크게)로 울리고, 이어서 '숨 사이의 쉼' 안내를 들려줌.
    웹앱이라 앱을 닫으면 울릴 수 없으므로, 켜 둔 동안 화면 켜짐을 유지하고 소리 장치를 깨워 둠 */
-settings.alarm=Object.assign({time:'06:30',snd:'bowl',n:3,ramp:1,next:'still'},settings.alarm||{});
+settings.alarm=Object.assign({time:'06:30',snd:'bowl',n:3,ramp:1,next:'guide'},settings.alarm||{});
+if(settings.alarm.next==='still') settings.alarm.next='guide';
 const alarm={on:false,target:0,ringing:false,timer:null,out:null,goT:null,scheduled:false};
 const AL_GAP={bowl:7,bell:9}; // 종 사이 간격(초)
 function alPlan(){ // [{t:시작부터 초, g:세기}]
@@ -2337,7 +2348,7 @@ function alTick(onlyDraw){
   $('alarmState').textContent=alarm.on?settings.alarm.time+' 켜짐':'설정 ›';
   if(!alarm.on) return;
   const left=alarm.target-now.getTime();
-  if(alarm.ringing){ $('alMsg').textContent=settings.alarm.next==='still'?'종소리가 끝나면 숨 사이의 쉼 안내가 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.'; }
+  if(alarm.ringing){ $('alMsg').textContent=settings.alarm.next==='guide'?'종소리가 끝나면 안내 음성이 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.'; }
   else { const mm=Math.max(0,Math.ceil(left/60000)); $('alMsg').textContent=`${settings.alarm.time}에 울립니다 · ${mm>=60?Math.floor(mm/60)+'시간 ':''}${mm%60}분 남음\n이 화면을 켜 둔 채 두세요.`; }
   if(onlyDraw) return;
   // 남은 시간이 1분 안쪽이면 소리 장치 시계에 정확히 걸어 둠 (화면이 꺼져 계산이 느려져도 제때 울리게)
@@ -2345,12 +2356,12 @@ function alTick(onlyDraw){
     const plan=alPlan(); alarm.out=alSchedule(at,plan); alarm.ringAt=Date.now()+Math.max(50,left);
     const end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
     clearTimeout(alarm.goT); alarm.goT=setTimeout(alAfterBells,Math.max(50,left)+end*1000); }
-  if(!alarm.ringing&&alarm.ringAt&&Date.now()>=alarm.ringAt){ alarm.ringing=true; $('alGo').hidden=settings.alarm.next!=='still'; alTick(true); }
+  if(!alarm.ringing&&alarm.ringAt&&Date.now()>=alarm.ringAt){ alarm.ringing=true; $('alGo').hidden=settings.alarm.next!=='guide'; alTick(true); }
 }
 function alAfterBells(){
   if(!alarm.on) return;
   const next=settings.alarm.next; alDisarm(true);
-  if(next==='still'){ startRun('still',true); } else alRender();
+  if(next==='guide'){ startRun('wake',true); } else alRender();
 }
 function alArm(){
   unlockAudio(); keepAlive(true); Wake.on('alarm');
