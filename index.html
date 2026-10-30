@@ -760,7 +760,7 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       <div class="section"><span class="label">종소리 난 후</span><div class="chips" id="alNext"><button class="chip" data-v="guide">안내음성</button><button class="chip" data-v="none">종소리만</button></div></div>
       <button class="btn ghost" id="alPreview">미리 듣기</button>
       <button class="btn" id="alArm">알람 켜기</button>
-      <p class="note">알람은 무우수 화면을 켜 둔 동안에만 울립니다. 알람을 켠 뒤 이 화면 그대로 휴대폰을 충전기에 연결해 두세요. 휴대폰 기본 알람처럼 앱을 닫아도 울리지는 않습니다.</p>
+      <p class="note">알람을 켠 뒤에는 휴대폰 화면이 꺼져도 울립니다. 다만 무우수를 닫으면 울리지 않으니, 알람을 켠 채 그대로 충전기에 연결해 두세요.</p>
     </div>
     <div id="alOn" class="al-on" hidden>
       <div class="al-clock num" id="alClock">--:--</div>
@@ -1225,17 +1225,22 @@ function tick(){ // 남은 시간은 오디오 시계로 셈 → 화면이 꺼�
   if(remaining<=0) finish();
 }
 /* 잠금화면·알림창의 재생 표시 (안드로이드에서 화면이 꺼져도 소리를 이어 가는 데 도움) */
-function mediaOn(title){
+function mediaOn(title,album){
   try{ if(!('mediaSession' in navigator)) return;
-    navigator.mediaSession.metadata=new MediaMetadata({title,artist:'무우수',album:'듣기명상',artwork:[{src:'icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}]});
+    navigator.mediaSession.metadata=new MediaMetadata({title,artist:'무우수',album:album||'듣기명상',artwork:[{src:'icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}]});
     navigator.mediaSession.playbackState='playing';
-    navigator.mediaSession.setActionHandler('pause',()=>{ if(ctx&&!paused) togglePause(); });
-    navigator.mediaSession.setActionHandler('play',()=>{ if(ctx&&paused) togglePause(); });
-    try{ navigator.mediaSession.setActionHandler('stop',()=>{ $('stopBtn').click(); }); }catch(e){}
+    const isRun=()=>runState&&route.name==='run', isSu=()=>route.name==='sutra'&&su.touched;
+    navigator.mediaSession.setActionHandler('pause',()=>{ if(isRun()){ if(!runState.paused) $('rPause').click(); } else if(isSu()){ if(su.playing) suStop(); } else if(ctx&&!paused) togglePause(); });
+    navigator.mediaSession.setActionHandler('play',()=>{ if(isRun()){ if(runState.paused) $('rPause').click(); } else if(isSu()){ if(!su.playing) suPlay(); } else if(ctx&&paused) togglePause(); });
+    try{ navigator.mediaSession.setActionHandler('stop',()=>{ if(isRun()) $('rStop').click(); else if(isSu()) suStop(); else $('stopBtn').click(); }); }catch(e){}
   }catch(e){}
 }
 function mediaOff(){ try{ if('mediaSession' in navigator){ navigator.mediaSession.playbackState='none'; navigator.mediaSession.metadata=null; } }catch(e){} }
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&ctx&&!paused&&!done){ try{ if(ctx.state!=='running') ctx.resume(); }catch(e){} tick(); } });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState!=='visible') return;
+  if(ctx&&!paused&&!done){ try{ if(ctx.state!=='running') ctx.resume(); }catch(e){} tick(); }
+  if((runState&&!runState.paused)||alarm.on){ try{ if(pctx&&pctx.state!=='running') pctx.resume(); }catch(e){} }
+  if(runState&&!(runState.count>0)) runFollow(runState);
+  if(alarm.on) alResync(); });
 function render(){
   const prep=prepLeft>0;
   $('pTime').textContent=prep?fmt(prepLeft):fmt(remaining);
@@ -1267,7 +1272,7 @@ function closeAudio(fade){
     if(c.state==='suspended') c.resume();
     m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value,now); m.gain.linearRampToValueAtTime(0,now+fade);
     setTimeout(()=>c.close().catch(()=>{}),(fade+.5)*1000); }
-  ctx=null; mediaOff();
+  ctx=null; if(!runState&&!alarm.on) mediaOff();
   Wake.off('player');
 }
 function finish(){
@@ -1725,7 +1730,7 @@ document.addEventListener('click',()=>{ if(Wake.want.size) Wake.sync(); },true);
 function keepAlive(on){
   try{
     if(on){ if(!silentEl){ silentEl=new Audio(silentWav()); silentEl.loop=true; silentEl.setAttribute('playsinline',''); } silentEl.play().catch(()=>{}); }
-    else if(silentEl && !runState && !(ctx&&!done)) silentEl.pause();
+    else if(silentEl && !runState && !(ctx&&!done) && !alarm.on) silentEl.pause();
   }catch(e){}
 }
 function unlockAudio(){
@@ -1739,12 +1744,13 @@ function unlockAudio(){
 }
 document.addEventListener('pointerdown',unlockAudio,true);
 document.addEventListener('keydown',unlockAudio,true);
-function chime(kind,force){
-  if((!settings.chime&&!force)||kind==='none') return;
+function chime(kind,force,at){
+  const nodes=[];
+  if((!settings.chime&&!force)||kind==='none') return nodes;
   try{
     if(!pctx||pctx.state==='closed') pctx=new (window.AudioContext||window.webkitAudioContext)();
     if(pctx.state==='suspended') pctx.resume();
-    const c=pctx,t=c.currentTime+.03,long=kind==='long';
+    const c=pctx,t=at!=null?Math.max(at,c.currentTime+.01):c.currentTime+.03,long=kind==='long';
     const o0=c.createGain(); o0.gain.value=(settings.volume/100)*(long?.9:.45); o0.connect(c.destination);
     const parts=long?[[1,.55,22,1.0],[2.76,.28,15,1.7],[5.4,.1,8]]:[[1,.55,5,1.4],[2.76,.22,3.5],[5.4,.08,1.8]];
     const base=long?220:330;
@@ -1754,10 +1760,11 @@ function chime(kind,force){
         o.frequency.value=base*r+b;
         g.gain.setValueAtTime(0.00001,t); g.gain.linearRampToValueAtTime(pk,t+.01);
         g.gain.exponentialRampToValueAtTime(Math.max(pk*.003,0.00001),t+dec); g.gain.linearRampToValueAtTime(0,t+dec+.4);
-        o.connect(g).connect(o0); o.start(t); o.stop(t+dec+.5);
+        o.connect(g).connect(o0); o.start(t); o.stop(t+dec+.5); nodes.push(o);
       });
     });
   }catch(e){}
+  return nodes;
 }
 
 // 음성 안내 (기기의 한국어 음성)
@@ -1869,33 +1876,78 @@ async function startRun(id,replace){
   unlockAudio(); keepAlive(true);
   const p=PMAP[id], steps=planSteps(p);
   prefetchRec(p);
+  runCancel();
   runState={p,steps,i:0,left:steps[0].d,paused:false,elapsed:0,total:steps.reduce((a,s)=>a+s.d,0),last:performance.now(),count:5};
+  runState.bufsP=runBufs(runState);
   $('rTitle').textContent=p.title; $('rVisual').innerHTML='';
   if(replace) replaceRoute({name:'run'}); else go({name:'run'});
   renderCountdown();
   clearInterval(runTimer); runTimer=setInterval(runTick,250);
-  Wake.on('run');
+  Wake.on('run'); mediaOn(p.title,'마음챙김');
 }
 function runTick(){
   const r=runState; if(!r) return;
   const now=performance.now(), dt=(now-r.last)/1000; r.last=now;
   if(r.paused) return;
   if(r.count>0){ r.count-=dt; if(r.count<=0) beginSteps(); else renderCountdown(); return; }
-  r.left-=dt; r.elapsed+=dt;
-  if(r.left<=0){
-    // 목소리가 문장을 다 읽을 때까지 기다리고, 읽은 뒤에는 고요한 텀을 둠
-    if(r.speaking && r.hold<30){ r.hold+=dt; renderRun(false); return; }
-    if(r.quietUntil && performance.now()<r.quietUntil){ renderRun(false); return; }
-    stepTo(r.i+1,true);
-  } else renderRun(false);
+  runFollow(r);
 }
-function stepTo(i,auto){
+/* ---- 화면이 꺼져도 이어지게: 종소리·안내 목소리를 오디오 시계에 미리 모두 걸어 두고, 화면은 그 시계를 따라감 ---- */
+let runNodes=[];
+function runCancel(){ runNodes.forEach(n=>{ try{ n.onended=null; n.stop(); }catch(e){} try{ n.disconnect(); }catch(e){} }); runNodes=[]; }
+function runBufs(r){ // 이 수련의 녹음을 모두 받아 풀어 둠 (최대 10초 기다림)
+  if(!hasRec(r.p)) return Promise.resolve({});
+  const texts=[...new Set(r.p.steps.map(x=>x.t))], out={}; let miss=0;
+  const all=Promise.all(texts.map((t,i)=>loadRec(recUrl(r.p.id,i+1)).then(b=>{ out[t]=b; }).catch(()=>{ miss++; })));
+  return Promise.race([all,new Promise(res=>setTimeout(res,10000))]).then(()=>{
+    if(runState===r) r.bufs=out;
+    if((miss||Object.keys(out).length<texts.length)&&runState===r&&!playRec.warned){ playRec.warned=1; toast('안내 목소리 일부를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); }
+    return out; });
+}
+function runPlan(r,from,t0,resumeLeft){ // from번째 문장부터 끝까지 t0(오디오 시계)에 맞춰 걸어 둠
+  runCancel();
+  const c=pctx, vol=Math.min(1,settings.volume/100*.8+.1), sched=[]; let S=t0;
+  for(let k=from;k<r.steps.length;k++){
+    const st=r.steps[k], resume=(k===from&&resumeLeft!=null);
+    if(!resume) runNodes.push(...chime(st.chime||'short',false,S));
+    const buf=r.bufs&&r.bufs[st.t];
+    const delay=resume?.15:(st.chime==='long'?1.6:(settings.chime?.65:.15));
+    let V=null,E=S,quietEnd=0;
+    if(buf){ V=S+delay; const src=c.createBufferSource(), g=c.createGain(); src.buffer=buf; g.gain.value=vol; src.connect(g).connect(c.destination); src.start(V); runNodes.push(src);
+      E=V+buf.duration; let quiet=settings.gap; if(st.chimeAfter){ runNodes.push(...chime(st.chimeAfter,true,E)); quiet=Math.max(quiet,22); } quietEnd=E+quiet; }
+    else if(st.chimeAfter){ const ca=S+.8; runNodes.push(...chime(st.chimeAfter,true,ca)); quietEnd=ca+Math.max(settings.gap,22); }
+    const end=Math.max(S+(resume?resumeLeft:st.d),quietEnd);
+    sched.push({k,S:resume?S-(st.d-resumeLeft):S,V,E,after:st.chimeAfter&&quietEnd?quietEnd-Math.max(settings.gap,22):null,end});
+    S=end;
+  }
+  r.sched=sched; r.endT=S; r.planT0=t0;
+}
+function runElapsed(r){ return (r.elapsedBase||0)+(r.sched&&!r.paused&&pctx?Math.max(0,pctx.currentTime-r.planT0):0); }
+function runFollow(r){
+  if(!r.sched){ renderRun(false); return; } // 녹음을 받는 중
+  const now=pctx.currentTime;
+  r.elapsed=runElapsed(r);
+  if(now>=r.endT){ r.elapsed=(r.elapsedBase||0)+(r.endT-r.planT0); finishRun(); return; }
+  let j=0; while(j+1<r.sched.length&&r.sched[j+1].S<=now) j++;
+  const e=r.sched[j];
+  if(e.k!==r.i){ r.i=e.k; renderRun(true); }
+  r.left=e.S+r.steps[e.k].d-now; r.speaking=e.V!=null&&now>=e.V&&now<e.E;
+  if(e.after&&now>=e.after&&!(lotusPulse&&performance.now()-lotusPulse<24000)) lotusPulse=performance.now()-(now-e.after)*1000;
+  renderRun(false);
+}
+function runStartAt(r,i,resumeLeft){ // 지금부터 i번째 문장을 다시 걸어 둠
+  unlockAudio();
+  const go=bufs=>{ if(runState!==r||r.paused) return; r.bufs=r.bufs||bufs; r.elapsedBase=runElapsed(r); r.sched=null;
+    try{ if(pctx.state!=='running') pctx.resume(); }catch(e){}
+    runPlan(r,i,pctx.currentTime+.08,resumeLeft); runFollow(r); };
+  if(r.bufs) go(r.bufs); else r.bufsP.then(go);
+}
+function stepTo(i){
   const r=runState; if(!r) return;
   if(i>=r.steps.length){ finishRun(); return; }
   if(i<0) i=0;
   r.i=i; r.left=r.steps[i].d;
-  chime(r.steps[i].chime||'short');
-  speakStep();
+  runStartAt(r,i);
   renderRun(true);
 }
 // ---- 숨 따라 피는 연꽃 (모든 명상 공통) ----
@@ -1977,8 +2029,7 @@ function renderCountdown(){
 function beginSteps(){
   const r=runState; if(!r) return;
   r.count=0; $('rTag').classList.remove('big');
-  chime(r.steps[0].chime||'short');
-  speakStep();
+  r.elapsedBase=0; runStartAt(r,0);
   renderRun(true);
 }
 function visualFor(p,s){
@@ -2009,9 +2060,9 @@ function renderRun(stepChanged){
 function stopRun(){
   setTimeout(()=>keepAlive(false),0);
   if(runState) clearTimeout(runState.sp);
-  hush();
+  hush(); runCancel();
   clearInterval(runTimer); runTimer=null; runState=null;
-  Wake.off('run');
+  Wake.off('run'); if(!ctx) mediaOff();
 }
 function finishRun(){
   const r=runState;
@@ -2025,11 +2076,12 @@ function replaceRoute(r){
 }
 $('rPause').addEventListener('click',()=>{ const r=runState; if(!r) return; r.paused=!r.paused; r.last=performance.now();
   if(r.count>0){ renderCountdown(); return; }
-  if(r.paused){ clearTimeout(r.sp); hush(); r.speaking=false; } else speakStep();
+  if(r.paused){ r.elapsedBase=(r.elapsedBase||0)+(r.sched&&pctx?Math.max(0,Math.min(pctx.currentTime,r.endT)-r.planT0):0); r.sched=null; runCancel(); hush(); r.speaking=false; }
+  else runStartAt(r,r.i,Math.max(1,r.left));
   renderRun(false); });
 $('rNext').addEventListener('click',()=>{ if(!runState) return; if(runState.count>0){ beginSteps(); return; } stepTo(runState.i+1); });
 $('rStop').addEventListener('click',()=>{ if(runState) finishRun(); });
-$('rRestart').addEventListener('click',()=>{ const r=runState; if(!r) return; const id=r.p.id; clearTimeout(r.sp); hush(); r.speaking=false; startRun(id,true); });
+$('rRestart').addEventListener('click',()=>{ const r=runState; if(!r) return; const id=r.p.id; clearTimeout(r.sp); hush(); runCancel(); r.speaking=false; startRun(id,true); });
 $('rPrev').addEventListener('click',()=>{ if(runState&&!(runState.count>0)) stepTo(runState.i-1); });
 
 // 마침 기록
@@ -2273,7 +2325,7 @@ function suWarmNext(){ // 금강경: 다음 분 녹음을 미리 받아 두어 �
   setTimeout(()=>{ try{ fetch(u).then(r=>r.blob()).catch(()=>{ delete suWarmed[u]; }); }catch(e){} },4000);
 }
 let suWake=null;
-function suWakeOn(){ Wake.on('sutra'); }
+function suWakeOn(){ Wake.on('sutra'); mediaOn(su.book||'경전 읽기','경전 읽기'); }
 function suWakeOff(){ Wake.off('sutra'); }
 function suPlay(){
   unlockAudio(); if(!su.playing) suT0=Date.now(); su.playing=true; su.touched=true; su.retry=0; suWakeOn();
@@ -2429,13 +2481,14 @@ function alTick(onlyDraw){
   const left=alarm.target-now.getTime(), t=Date.now();
   if(alarm.guideAt&&t>=alarm.guideAt) $('alMsg').textContent='안내 음성이 이어지고 있습니다.\n눈을 감은 채 들으셔도 됩니다.';
   else if(alarm.ringing) $('alMsg').textContent=settings.alarm.next==='guide'?'종소리가 끝나면 안내 음성이 이어집니다.\n눈을 감은 채 들으셔도 됩니다.':'종소리가 울리고 있습니다.';
-  else { const mm=Math.max(0,Math.ceil(left/60000)); $('alMsg').textContent=`${settings.alarm.time}에 울립니다 · ${mm>=60?Math.floor(mm/60)+'시간 ':''}${mm%60}분 남음\n이 화면을 켜 둔 채 두세요.`; }
+  else { const mm=Math.max(0,Math.ceil(left/60000)); $('alMsg').textContent=`${settings.alarm.time}에 울립니다 · ${mm>=60?Math.floor(mm/60)+'시간 ':''}${mm%60}분 남음\n화면은 꺼도 됩니다. 무우수만 닫지 마세요.`; }
   if(onlyDraw) return;
-  // 남은 시간이 1분 안쪽이면 종소리와 안내 음성을 모두 소리 장치 시계에 이어 걸어 둠
-  // → 화면이 꺼져 앱의 계산이 느려져도 종소리 뒤에 안내가 끊김 없이 자동으로 나옴
-  if(!alarm.scheduled&&left<=60000){ alarm.scheduled=true; unlockAudio();
+  // 알람을 켜면 (안내 녹음을 받는 대로) 종소리와 안내 음성을 모두 소리 장치 시계에 미리 걸어 둠
+  // → 화면이 꺼져 앱의 계산이 멈추거나 느려져도 정한 시각에 울리고, 종소리 뒤에 안내가 이어짐
+  const ready=settings.alarm.next!=='guide'||alarm.bufs||t-alarm.armedAt>12000;
+  if(!alarm.scheduled&&ready&&left>0){ alarm.scheduled=true; unlockAudio();
     const lead=Math.max(.05,left/1000), at=pctx.currentTime+lead, plan=alPlan();
-    alarm.out=alSchedule(at,plan); alarm.ringAt=t+lead*1000;
+    alarm.out=alSchedule(at,plan); alarm.ringAt=t+lead*1000; alarm.atCtx=at;
     let end=plan[plan.length-1].t+(settings.alarm.snd==='bell'?14:12);
     if(settings.alarm.next==='guide'&&alarm.bufs){
       const g0=plan[plan.length-1].t+8; let tg=g0; const st=planSteps(PMAP.wake);
@@ -2445,6 +2498,11 @@ function alTick(onlyDraw){
     alarm.endAt=t+(lead+end)*1000; }
   if(!alarm.ringing&&alarm.ringAt&&t>=alarm.ringAt){ alarm.ringing=true; alTick(true); }
   if(alarm.endAt&&t>=alarm.endAt) alFinish();
+}
+function alResync(){ // 화면을 다시 켰을 때 소리 시계가 멈춰 있었다면(늦어졌다면) 다시 걸어 둠
+  if(!alarm.on||!alarm.scheduled||alarm.ringing||!pctx) return;
+  const want=pctx.currentTime+(alarm.ringAt-Date.now())/1000;
+  if(Math.abs(want-alarm.atCtx)>1.5){ alStopSound(); alarm.scheduled=false; alarm.ringAt=0; alarm.guideAt=0; alarm.endAt=0; alTick(false); }
 }
 function alFinish(){ // 종소리(와 안내)가 모두 끝남
   const g=alarm.guideAt&&alarm.guideSec, fb=alarm.fallback; alarm.fallback=false;
@@ -2456,10 +2514,11 @@ function alFinish(){ // 종소리(와 안내)가 모두 끝남
 }
 function alAfterBells(){ alFinish(); }
 function alArm(){
-  unlockAudio(); keepAlive(true); Wake.on('alarm');
+  unlockAudio(); keepAlive(true); mediaOn('알람 명상 · '+settings.alarm.time,'알람 명상');
+  alarm.armedAt=Date.now();
   alarm.on=true; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.guideAt=0; alarm.endAt=0; alarm.target=alNextTarget();
   // 안내 음성을 미리 받아 풀어 둠 (울릴 때 인터넷이 없어도 되게)
-  alarm.bufs=null; if(settings.alarm.next==='guide'){ const n=REC.wake||0; Promise.all(Array.from({length:n},(_,k)=>loadRec(recUrl('wake',k+1)))).then(b=>{ alarm.bufs=b; }).catch(()=>{ alarm.bufs=null; }); }
+  alarm.bufs=null; if(settings.alarm.next==='guide'){ const n=REC.wake||0; Promise.all(Array.from({length:n},(_,k)=>loadRec(recUrl('wake',k+1)))).then(b=>{ alarm.bufs=b; if(alarm.on&&!alarm.scheduled) alTick(false); }).catch(()=>{ alarm.bufs=null; }); }
   clearInterval(alarm.timer); alarm.timer=setInterval(()=>alTick(false),1000);
   alRender(); alTick(false);
 }
@@ -2467,7 +2526,7 @@ function alDisarm(quiet){
   alarm.on=false; alarm.ringing=false; alarm.scheduled=false; alarm.ringAt=0; alarm.guideAt=0; alarm.endAt=0;
   clearInterval(alarm.timer); alarm.timer=null; clearTimeout(alarm.goT);
   if(!quiet) alStopSound(); else setTimeout(alStopSound,100);
-  Wake.off('alarm'); keepAlive(false);
+  Wake.off('alarm'); keepAlive(false); if(!ctx&&!runState) mediaOff();
   if(route.name==='alarm') alRender(); else $('alarmState').textContent='설정 ›';
 }
 $('alarmBtn').addEventListener('click',()=>go({name:'alarm'}));
