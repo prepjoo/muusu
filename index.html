@@ -1196,28 +1196,46 @@ async function startSession(id){
   setPauseUI();
   if(route.name==='player') show(route); else go({name:'player'});
   render(); lastTick=performance.now();
-  timerId=setInterval(tick,250); schedId=setInterval(schedule,200); schedule();
+  const endT=startAt+total; master.gain.setValueAtTime(1,Math.max(startAt+.1,endT-(id==='lotus'?6:3))); master.gain.linearRampToValueAtTime(0,endT);
+  ctx.onstatechange=()=>{ if(ctx&&!paused&&!done&&ctx.state!=='running'&&ctx.state!=='closed'){ try{ ctx.resume(); }catch(e){} } };
+  mediaOn(s.name+' · '+fmtPreset(minsOf(id))+(bellRand(id)?' · 랜덤':''));
+  timerId=setInterval(tick,250); schedId=setInterval(schedule,1000); schedule();
   Wake.on('player');
 }
+// 화면이 꺼지면 타이머가 1분에 한 번꼴로 늦춰지므로, 소리는 오디오 시계에 10분 앞까지 미리 예약해 둠
+const AHEAD=600;
 function schedule(){
   if(!ctx||paused||done) return;
   const now=ctx.currentTime;
   if(cur.id==='lotus'){
     if(now>startAt && Math.random()<.5) drops(now);
-    while(nextThunder<now+.5){ if(nextThunder-startAt<total-8) thunder(nextThunder); nextThunder+=15; }
+    while(nextThunder<now+AHEAD && nextThunder-startAt<total-8){ thunder(nextThunder); nextThunder+=15; }
     return;
   }
-  while(nextStrike<now+.5 && (nextStrike-startAt)<total-0.5){
+  while(nextStrike<now+AHEAD && (nextStrike-startAt)<total-0.5){
     cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); strikeTimes.push(nextStrike); nextStrike+=nextGap();
   }
 }
-function tick(){
-  const t=performance.now(),dt=(t-lastTick)/1000; lastTick=t;
-  if(paused||done) return;
-  if(prepLeft>0){ prepLeft-=dt; if(prepLeft<=0) $('pHint').textContent=cur.hint; render(); return; }
-  remaining-=dt; render();
+function tick(){ // 남은 시간은 오디오 시계로 셈 → 화면이 꺼져 타이머가 늦어져도 소리와 어긋나지 않음
+  lastTick=performance.now();
+  if(paused||done||!ctx) return;
+  const now=ctx.currentTime;
+  if(prepLeft>0){ prepLeft=Math.max(0,startAt-.3-now); if(prepLeft<=0) $('pHint').textContent=cur.hint; render(); return; }
+  remaining=Math.max(0,total-Math.max(0,now-startAt)); render();
   if(remaining<=0) finish();
 }
+/* 잠금화면·알림창의 재생 표시 (안드로이드에서 화면이 꺼져도 소리를 이어 가는 데 도움) */
+function mediaOn(title){
+  try{ if(!('mediaSession' in navigator)) return;
+    navigator.mediaSession.metadata=new MediaMetadata({title,artist:'무우수',album:'듣기명상',artwork:[{src:'icons/icon-192.png',sizes:'192x192',type:'image/png'},{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}]});
+    navigator.mediaSession.playbackState='playing';
+    navigator.mediaSession.setActionHandler('pause',()=>{ if(ctx&&!paused) togglePause(); });
+    navigator.mediaSession.setActionHandler('play',()=>{ if(ctx&&paused) togglePause(); });
+    try{ navigator.mediaSession.setActionHandler('stop',()=>{ $('stopBtn').click(); }); }catch(e){}
+  }catch(e){}
+}
+function mediaOff(){ try{ if('mediaSession' in navigator){ navigator.mediaSession.playbackState='none'; navigator.mediaSession.metadata=null; } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&ctx&&!paused&&!done){ try{ if(ctx.state!=='running') ctx.resume(); }catch(e){} tick(); } });
 function render(){
   const prep=prepLeft>0;
   $('pTime').textContent=prep?fmt(prepLeft):fmt(remaining);
@@ -1235,6 +1253,7 @@ function togglePause(){
   if(!ctx||done) return;
   paused=!paused;
   if(paused) ctx.suspend(); else { ctx.resume(); lastTick=performance.now(); }
+  try{ navigator.mediaSession.playbackState=paused?'paused':'playing'; }catch(e){}
   setPauseUI(); render();
 }
 function record(){
@@ -1248,7 +1267,7 @@ function closeAudio(fade){
     if(c.state==='suspended') c.resume();
     m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value,now); m.gain.linearRampToValueAtTime(0,now+fade);
     setTimeout(()=>c.close().catch(()=>{}),(fade+.5)*1000); }
-  ctx=null;
+  ctx=null; mediaOff();
   Wake.off('player');
 }
 function finish(){
