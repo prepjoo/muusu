@@ -634,6 +634,11 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
       </div>
       <p class="note num" id="sdNote"></p>
     </div>
+    <div class="section" id="sdGapBox" hidden>
+      <span class="label">울리는 간격</span>
+      <div class="chips" id="sdGap" role="group" aria-label="울리는 간격"></div>
+      <p class="note" id="sdGapNote"></p>
+    </div>
     <button class="btn" id="sdStart">시작하기</button>
   </section>
 
@@ -915,7 +920,7 @@ const $=id=>document.getElementById(id);
 /* ---------- 저장 ---------- */
 function load(k,d){try{const v=localStorage.getItem('gyo:'+k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem('gyo:'+k,JSON.stringify(v))}catch(e){}}
-const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1},load('settings',{}));
+const settings=Object.assign({volume:75,rainVol:50,prep:5,wake:true,chime:true,voice:true,rate:.8,pitch:.85,voiceName:'',gap:5,fs:1,bellGap:30},load('settings',{}));
 if(!settings.sv4){ settings.fs=1; settings.sv3=1; settings.sv4=1; save('settings',settings); }
 if(!settings.sv2){ if(![3,5,10].includes(settings.gap)) settings.gap=5; if(settings.gap===3) settings.gap=5; settings.sv2=1; save('settings',settings); }
 const sessVol=id=>id==='lotus'?settings.rainVol:settings.volume;
@@ -932,6 +937,13 @@ setInterval(()=>{ if(typeof su==='undefined') return; if(su.playing){ if(suT0) s
 function addSession(x){ sessions.unshift(x); sessions=sessions.slice(0,MAX_SESS); save('sessions',sessions); }
 let last=load('last',null);         // {id, min}
 const chosen={bowl:SOUNDS.bowl.def,bell:SOUNDS.bell.def,lotus:SOUNDS.lotus.def};
+/* 범종 울리는 간격: 30초·1분·2분·3분, 또는 랜덤 */
+const BELL_GAPS=[30,60,120,180];
+if(settings.bellGap!=='rand'&&!BELL_GAPS.includes(settings.bellGap)) settings.bellGap=30;
+const gapName=g=>g==='rand'?'랜덤':(g<60?g+'초':(g/60)+'분');
+const gapPhrase=g=>g==='rand'?'30초~3분 사이 랜덤 간격으로':gapName(g)+'마다';
+const bellText=t=>id=>id==='bell'?t.replace(/30초마다/g,gapPhrase(settings.bellGap)):t;
+function nextGap(){ if(!cur||cur.id!=='bell') return cur.gap; const g=settings.bellGap; return g==='rand'?BELL_GAPS[Math.floor(Math.random()*BELL_GAPS.length)]:g; }
 if(last&&chosen[last.id]) chosen[last.id]=last.min;
 
 
@@ -953,7 +965,7 @@ function applySheet(d){ if(!d) return;
   try{ (d.sound||[]).forEach(([id,n,sub,desc])=>{ const x=SOUNDS[id]; if(!x) return; if(n&&n.trim()) x.name=n.trim(); if(sub&&sub.trim()) x.sub=sub.trim(); if(desc&&desc.trim()) x.desc=desc.trim(); }); }catch(e){}
 }
 function rebuildLists(){ // 목록 글자만 바꿔 넣음
-  document.querySelectorAll('[data-sound]').forEach(b=>{ const x=SOUNDS[b.dataset.sound]; if(!x) return; const h=b.querySelector('h4'),p=b.querySelector('p'); if(h) h.textContent=x.name; if(p) p.textContent=x.sub; });
+  document.querySelectorAll('[data-sound]').forEach(b=>{ const x=SOUNDS[b.dataset.sound]; if(!x) return; const h=b.querySelector('h4'),p=b.querySelector('p'); if(h) h.textContent=x.name; if(p) p.textContent=bellText(x.sub)(b.dataset.sound); });
   document.querySelectorAll('[data-practice]').forEach(b=>{ const x=PMAP[b.dataset.practice]; if(!x) return; const h=b.querySelector('h4'),p=b.querySelector('p');
     if(h) h.textContent=x.title; if(p) p.textContent=x.sub+' · '+(x.mins?x.mins.join('/')+'분':'약 '+fmtDur(Math.round(totalSec(x)/10)*10)); });
 }
@@ -1044,13 +1056,22 @@ function renderHome(){
     $('todayBtn').classList.toggle('done',tsec>=300); }
 }
 $('soundRows').innerHTML=ORDER.map(id=>{const s=SOUNDS[id];return `<button class="row ic" data-sound="${id}">
-  ${SICON[id]}<span><h4>${s.name}</h4><p>${s.sub}</p></span>${ICON.chev}</button>`}).join('');
+  ${SICON[id]}<span><h4>${s.name}</h4><p>${bellText(s.sub)(id)}</p></span>${ICON.chev}</button>`}).join('');
 document.querySelectorAll('[data-sound]').forEach(b=>b.addEventListener('click',()=>go({name:'sound',id:b.dataset.sound})));
 
 /* ---------- 소리 화면 ---------- */
 function renderSound(id){
   const s=SOUNDS[id];
-  $('sdTitle').textContent=s.name; $('sdName').textContent=s.name; $('sdDesc').textContent=s.desc;
+  $('sdTitle').textContent=s.name; $('sdName').textContent=s.name; $('sdDesc').textContent=bellText(s.desc)(id);
+  $('sdGapBox').hidden=id!=='bell';
+  if(id==='bell'){
+    $('sdGap').innerHTML=[...BELL_GAPS,'rand'].map(g=>`<button class="chip" data-g="${g}" aria-pressed="${settings.bellGap===g}">${gapName(g)}</button>`).join('');
+    $('sdGap').querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{
+      const g=ch.dataset.g==='rand'?'rand':+ch.dataset.g; settings.bellGap=g; save('settings',settings);
+      $('sdGap').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===ch)));
+      $('sdDesc').textContent=bellText(s.desc)(id); rebuildLists(); soundNote(id);
+    }));
+  }
   $('sdArt').innerHTML='';
   const isPreset=s.presets.includes(chosen[id]);
   $('sdChips').innerHTML=s.presets.map(m=>`<button class="chip" data-m="${m}" aria-pressed="${isPreset&&m===chosen[id]}">${fmtPreset(m)}</button>`).join('')
@@ -1068,6 +1089,10 @@ function renderSound(id){
 function clampMin(v,d){v=Math.round(+v);return v>=1?Math.min(720,v):d}
 function soundNote(id){
   const s=SOUNDS[id], m=chosen[id];
+  if(id==='bell'){ const g=settings.bellGap;
+    $('sdNote').textContent = g==='rand' ? `${fmtPreset(m)} 동안 약 ${Math.max(1,Math.round(m*60/97.5))}번 울립니다.` : `${fmtPreset(m)} 동안 ${Math.ceil(m*60/g)}번 울립니다.`;
+    $('sdGapNote').textContent = g==='rand' ? '다음 종이 언제 울릴지 모릅니다. 30초, 1분, 2분, 3분 가운데 하나가 그때그때 정해집니다. 기다리는 마음까지 알아차려 보세요.' : `종이 ${gapName(g)}마다 울립니다.`;
+    return; }
   $('sdNote').textContent = s.gap ? `${fmtPreset(m)} 동안 ${Math.ceil(m*60/s.gap)}번 울립니다.` : `${fmtPreset(m)} 동안 이어지고, 천둥은 약 ${Math.floor(m*60/15)}번 들립니다.`;
 }
 $('sdInput').addEventListener('input',()=>{ chosen[route.id]=clampMin($('sdInput').value,SOUNDS[route.id].def); soundNote(route.id); });
@@ -1159,7 +1184,7 @@ async function startSession(id){
   master.gain.linearRampToValueAtTime(1,startAt+(id==='lotus'?4:.05)); master.connect(out);
   strikeTimes=[];
   if(id==='lotus'){ startRain(startAt); nextThunder=startAt+15; } else nextStrike=startAt;
-  $('pTitle').textContent=s.name+' · '+fmtPreset(chosen[id]);
+  $('pTitle').textContent=s.name+' · '+fmtPreset(chosen[id])+(id==='bell'?' · '+gapName(settings.bellGap):'');
   $('pArt').innerHTML=''; $('pHint').textContent=prepLeft?'자리를 잡고 숨을 고르세요.':s.hint;
   $('pControls').hidden=false; $('pSub').hidden=false; $('pDone').hidden=true; $('vol').value=sessVol(id);
   setPauseUI();
@@ -1177,7 +1202,7 @@ function schedule(){
     return;
   }
   while(nextStrike<now+.5 && (nextStrike-startAt)<total-0.5){
-    cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); strikeTimes.push(nextStrike); nextStrike+=cur.gap;
+    cur.id==='bowl'?bowlStrike(nextStrike):bellStrike(nextStrike); strikeTimes.push(nextStrike); nextStrike+=nextGap();
   }
 }
 function tick(){
@@ -2438,7 +2463,6 @@ $('alStop').addEventListener('click',()=>{ const g=alarm.guideAt&&Date.now()>=al
   if(r.name==='sound'||r.name==='practice') go(r); else if(r.name!=='home') tab(r.name);
 })();
 </script>
-
 <script>
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
