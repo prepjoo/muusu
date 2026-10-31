@@ -436,6 +436,24 @@ details.flow ol{margin:10px 0 0;padding-left:22px;display:flex;flex-direction:co
 .joy b{font-family:var(--serif);font-weight:400;font-size:16px;display:block}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom,0px));z-index:20;
   background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px)}
+
+/* ---- 작은 화면 보완 (모양과 기능은 그대로, 크기와 간격만) ---- */
+.su-ctl .btn{white-space:nowrap;min-width:0;padding-inline:10px}
+details.flow>summary{min-height:44px;display:flex;align-items:center;margin-block:-10px;cursor:pointer}
+#sealBtn{position:relative}#sealBtn::after{content:"";position:absolute;inset:-9px -6px}
+@media (max-width:360px){
+  .su-ctl{grid-template-columns:44px 1fr 1fr 44px;gap:6px}
+  .su-ctl .iconbtn{width:44px;height:44px}
+  #suSub .restart{padding:0 9px;font-size:13px}
+}
+@media (max-height:700px){
+  .su-bar{padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px));gap:6px}
+  .su-ctl .iconbtn{width:44px;height:44px}
+  .su-ctl{grid-template-columns:44px 1fr 1fr 44px}
+  .su-ctl .btn{min-height:44px;padding-block:8px}
+  #suSub .restart{min-height:34px}
+  .su-head{gap:6px}
+}
 </style>
 </head>
 <body>
@@ -984,8 +1002,11 @@ function refreshTexts(){ // 바뀐 글을 지금 화면에 다시 그림
 /* ---------- 화면 이동 ---------- */
 const TABS=['home','records','settings'];
 let route={name:'home'}, depth=0, histOK=true, fallback=[];
-function show(r){
+// 화면마다 마지막 스크롤 위치를 기억 → 되돌아가거나 홈으로 돌아올 때, 누르고 들어갔던 메뉴가 그대로 보이게
+const scrollMem={}; const scrollKey=r=>r?r.name+(r.id?':'+r.id:'')+(r.book?':'+r.book:''):'';
+function show(r,opt){
   const prev=route;
+  if(prev) scrollMem[scrollKey(prev)]=window.scrollY;
   route=r;
   if(r.name==='run' && !runState) r={name:'home'};
   if(r.name==='check' && !checkState) r={name:'home'};
@@ -1010,7 +1031,9 @@ function show(r){
   if(r.name==='alarm') alRender();
   if(prev&&prev.name==='alarm'&&r.name!=='alarm'&&alarm.on&&r.name!=='run'){ alDisarm(false); toast('알람 화면을 나가서 알람을 껐습니다.'); }
   updateMini();
-  window.scrollTo({top:0});
+  const y=((opt&&opt.restore)||r.name==='home')?(scrollMem[scrollKey(r)]||0):0;
+  window.scrollTo({top:y});
+  if(y) requestAnimationFrame(()=>{ if(route===r) window.scrollTo({top:Math.min(y,document.documentElement.scrollHeight-window.innerHeight)}); });
 }
 function go(r){
   show(r);
@@ -1018,7 +1041,7 @@ function go(r){
 }
 function back(){
   if(histOK && depth>0){ history.back(); return; }
-  fallback.pop(); show(fallback[fallback.length-1]||{name:'home'});
+  fallback.pop(); show(fallback[fallback.length-1]||{name:'home'},{restore:true});
 }
 function tab(name){
   // 탭끼리는 쌓지 않고 바꿔치기
@@ -1029,7 +1052,7 @@ function tab(name){
 let pendingTab=null;
 window.addEventListener('popstate',e=>{
   if(pendingTab){ const name=pendingTab; pendingTab=null; show({name}); try{history.replaceState({name},'','#'+name)}catch(err){} return; }
-  depth=Math.max(0,depth-1); show(e.state&&e.state.name?e.state:{name:'home'});
+  depth=Math.max(0,depth-1); show(e.state&&e.state.name?e.state:{name:'home'},{restore:true});
 });
 document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',back));
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>tab(t.dataset.tab)));
