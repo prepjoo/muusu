@@ -2238,6 +2238,9 @@ let su={book:'금강경',ch:0,i:0,playing:false,timer:null,audio:null};
 let suPosAll={};
 try{ suPosAll=load('sutraPos2',null)||{}; const old=load('sutraPos',null); if(old&&!suPosAll['금강경']) suPosAll['금강경']=old; }catch(e){}
 const B=()=>BOOKS[su.book], C=()=>B().chs[su.ch], FL=()=>C().paras.flat();
+// 반복 듣기를 고를 수 있는 한 편짜리 경전 (경전마다 따로 기억)
+const SU_LOOP={'법성게':'bsLoop','반야심경':'bnLoop'};
+const suLoopKey=()=>SU_LOOP[suName()], suLoopOn=()=>!!(suLoopKey()&&settings[suLoopKey()]);
 const suName=()=>(BOOKS[su.book]&&BOOKS[su.book].name)||su.book; // 한자·한글 두 읽기가 있어도 경전 이름은 하나
 function suOpen(book){
   if(!BOOKS[book]) book='금강경';
@@ -2266,7 +2269,7 @@ function renderSutra(){
     (bk.end&&su.ch===bk.chs.length-1?`<p class="su-end">${bk.end}</p>`:'');
   $('suText').querySelectorAll('.ph').forEach(el=>el.addEventListener('click',()=>{ suGoto(+el.dataset.i,true); }));
   { const rb=$('suRestart'), tn=[...rb.childNodes].reverse().find(x=>x.nodeType===3); const multi=bk.chs.length>1&&!bk.tabs; if(tn) tn.textContent=multi?'이 장 처음':'처음부터'; $('suTop').hidden=false; rb.hidden=!multi; } // 한 편짜리(반야심경·법성게)는 '경 처음' 하나로
-  $('suLoop').hidden=suName()!=='법성게'; $('suLoop').setAttribute('aria-pressed',String(!!settings.bsLoop));
+  $('suLoop').hidden=!suLoopKey(); $('suLoop').setAttribute('aria-pressed',String(suLoopOn()));
   $('suText').style.setProperty('--suz',settings.suz2||0.85);
   document.querySelectorAll('[data-sz]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.sz===(settings.suz2||0.85))));
   suMark(false);
@@ -2309,7 +2312,7 @@ function suTick(){ // 녹음이 없을 때: 소리 내어 읽는 빠르기로 �
     if(!su.playing) return;
     if(su.i<FL().length-1){ su.i++; suMark(true); suTick(); }
     else if(suNextCh()){ suMark(true); suTick(); }
-    else if(suName()==='법성게'&&settings.bsLoop){ su.i=0; suMark(true); suTick(); }
+    else if(suLoopOn()){ su.i=0; suMark(true); suTick(); }
     else { su.i=0; suStop(); su.touched=false; suMark(false); }
   },ms);
 }
@@ -2334,7 +2337,7 @@ function suAudio(){
   suEl.addEventListener('ended',()=>{
     if(!su.playing) return;
     if(suNextCh()) suStartAudio(true);
-    else if(suName()==='법성게'&&settings.bsLoop){ su.i=0; suMark(true); suStartAudio(true); } // 반복 듣기
+    else if(suLoopOn()){ su.i=0; suMark(true); suStartAudio(true); } // 반복 듣기
     else { su.i=0; suStop(); su.touched=false; suMark(false); }
   });
   // 불러오기가 끊기면 조용히 글자만 넘기지 않고, 두 번까지 다시 불러와 멈춘 자리부터 이어 감
@@ -2401,8 +2404,8 @@ function suSwitch(k){ // 분 바꾸기 / 한자·한글 바꾸기
   const was=su.playing; suStop(); su.ch=k; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0}); if(was) suPlay();
 }
 $('suEnd').addEventListener('click',()=>{ const was=su.playing||su.touched; suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); if(was) toast('여기서 마칩니다.'); });
-$('suLoop').addEventListener('click',()=>{ settings.bsLoop=!settings.bsLoop; save('settings',settings);
-  $('suLoop').setAttribute('aria-pressed',String(settings.bsLoop)); toast(settings.bsLoop?'법성게가 끝나면 처음부터 다시 이어 듣습니다.':'반복 듣기를 껐습니다.'); });
+$('suLoop').addEventListener('click',()=>{ const k=suLoopKey(); if(!k) return; settings[k]=!settings[k]; save('settings',settings);
+  $('suLoop').setAttribute('aria-pressed',String(settings[k])); toast(settings[k]?suName()+(suName()==='법성게'?'가':'이')+' 끝나면 처음부터 다시 이어 듣습니다.':'반복 듣기를 껐습니다.'); });
 $('suTop').addEventListener('click',()=>{ suStop(); if(!B().tabs) su.ch=0; su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); suPlay(); });
 $('suRestart').addEventListener('click',()=>{ suStop(); su.i=0; su.touched=false; renderSutra(); window.scrollTo({top:0,behavior:'smooth'}); suPlay(); });
 $('suPlay').addEventListener('click',()=>{ su.playing?suStop():suPlay(); });
