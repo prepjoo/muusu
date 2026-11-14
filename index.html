@@ -2221,7 +2221,8 @@ const BOOKS={
   '법성게·한자':{name:'법성게',han:'法性偈',chs:BS_H,tabs:false,chain:false,modes:BS_MODES,
     label:c=>c.title, pos:c=>'법성게', has:c=>true, cues:c=>BS_H_CUES,
     src:c=>`audio/beopseong-hanja.mp3?v=${AV}`, end:'의상대사 법성게 마침', unit:'구'},
-  '법성게':{han:'法性偈',chs:[{key:'bs',title:'법성게',paras:[BEOPSEONG]}],tabs:false,chain:false,modes:BS_MODES,
+  // 한글: 풀이만 두 구씩 한 문단으로 (한문·독음은 [한자]에서 봄)
+  '법성게':{han:'法性偈',chs:[{key:'hangul',title:'법성게',paras:BEOPSEONG.reduce((a,x,i)=>{ if(i%2===0) a.push([]); a[a.length-1].push(x.m); return a; },[])}],tabs:false,chain:false,modes:BS_MODES,
     label:c=>c.title, pos:c=>'법성게', has:c=>BS_AUDIO, cues:c=>BS_CUES,
     src:c=>`audio/beopseong.mp3?v=${AV}`, end:'의상대사 법성게 마침', unit:'구'},
   '사찰의 주련':{han:'寺刹柱聯',chs:JURYEON,tabs:false,chain:true,
